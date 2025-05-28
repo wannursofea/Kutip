@@ -1,4 +1,4 @@
-﻿namespace AspnetIdentityRoleBasedTutorial.Services
+﻿namespace Kutip.Services
 {
     public interface IFileService
     {
