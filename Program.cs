@@ -1,4 +1,4 @@
-using AspnetIdentityRoleBasedTutorial.Services;
+using Kutip.Services;
 using Kutip.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -48,5 +48,10 @@ app.MapControllerRoute(
 
 app.MapRazorPages()
    .WithStaticAssets();
+//await DbSeeder.SeedRolesAndAdminAsync(app.Services);
 
-app.Run();
+using (var scope = app.Services.CreateScope())
+{
+    await DbSeeder.SeedRolesAndAdminAsync(scope.ServiceProvider);
+}
+    app.Run();
