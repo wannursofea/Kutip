@@ -110,6 +110,7 @@ namespace Kutip.Data.Migrations
                     b.ToTable("Product");
                 });
 
+<<<<<<< Updated upstream
             modelBuilder.Entity("Kutip.Models.Schedule", b =>
                 {
                     b.Property<int>("Id")
@@ -124,10 +125,22 @@ namespace Kutip.Data.Migrations
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("PickupStatus")
+=======
+            modelBuilder.Entity("Kutip.Models.Bin", b =>
+                {
+                    b.Property<int>("b_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("b_ID"));
+
+                    b.Property<string>("b_PlateNo")
+>>>>>>> Stashed changes
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+<<<<<<< Updated upstream
                     b.Property<TimeSpan>("Time")
                         .HasColumnType("time");
 
@@ -140,6 +153,79 @@ namespace Kutip.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Schedules");
+=======
+                    b.Property<int>("c_ID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("l_ID")
+                        .HasColumnType("int");
+
+                    b.HasKey("b_ID");
+
+                    b.HasIndex("c_ID");
+
+                    b.HasIndex("l_ID");
+
+                    b.ToTable("Bins");
+                });
+
+            modelBuilder.Entity("Kutip.Models.Customer", b =>
+                {
+                    b.Property<int>("c_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("c_ID"));
+
+                    b.Property<string>("c_ContactNo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("c_Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("c_Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("c_ID");
+
+                    b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Kutip.Models.Location", b =>
+                {
+                    b.Property<int>("l_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("l_ID"));
+
+                    b.Property<string>("l_Address1")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("l_Address2")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("l_District")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("l_Postcode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("l_State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("l_ID");
+
+                    b.ToTable("Locations");
+>>>>>>> Stashed changes
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -275,6 +361,7 @@ namespace Kutip.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+<<<<<<< Updated upstream
             modelBuilder.Entity("Kutip.Models.Schedule", b =>
                 {
                     b.HasOne("Kutip.Data.ApplicationUser", "User")
@@ -284,6 +371,25 @@ namespace Kutip.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+=======
+            modelBuilder.Entity("Kutip.Models.Bin", b =>
+                {
+                    b.HasOne("Kutip.Models.Customer", "Customer")
+                        .WithMany("Bins")
+                        .HasForeignKey("c_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Kutip.Models.Location", "Location")
+                        .WithMany("Bins")
+                        .HasForeignKey("l_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Location");
+>>>>>>> Stashed changes
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -335,6 +441,16 @@ namespace Kutip.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Kutip.Models.Customer", b =>
+                {
+                    b.Navigation("Bins");
+                });
+
+            modelBuilder.Entity("Kutip.Models.Location", b =>
+                {
+                    b.Navigation("Bins");
                 });
 #pragma warning restore 612, 618
         }

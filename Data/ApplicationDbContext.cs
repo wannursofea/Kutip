@@ -1,3 +1,4 @@
+
 ﻿using Kutip.Models;  // Assuming your models are in this namespace
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -36,5 +37,11 @@ namespace Kutip.Data
             });
 
         }
+
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<Bin> Bins { get; set; }
+        public DbSet<Location> Locations { get; set; }
+
+
     }
 };
