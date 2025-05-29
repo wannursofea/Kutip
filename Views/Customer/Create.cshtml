@@ -1,0 +1,89 @@
+﻿@model Kutip.ViewModels.CustomerBinLocationViewModel
+
+@{
+    ViewData["Title"] = "Add Customer";
+}
+
+<h1 class="text-center">Add Customer</h1>
+
+<hr />
+
+<!-- Centering container -->
+<div class="d-flex justify-content-center align-items-start" style="min-height: 100vh; padding-top: 40px;">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Customer Info -->
+            <h4>Customer</h4>
+            <div class="form-group">
+                <label asp-for="Customer.c_Name" class="control-label"></label>
+                <input asp-for="Customer.c_Name" class="form-control" />
+                <span asp-validation-for="Customer.c_Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer.c_ContactNo" class="control-label"></label>
+                <input asp-for="Customer.c_ContactNo" class="form-control" />
+                <span asp-validation-for="Customer.c_ContactNo" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer.c_Email" class="control-label"></label>
+                <input asp-for="Customer.c_Email" class="form-control" />
+                <span asp-validation-for="Customer.c_Email" class="text-danger"></span>
+            </div>
+
+            <!-- Location Info -->
+            <h4>Location Info</h4>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label asp-for="Location.l_Address1"></label>
+                        <input asp-for="Location.l_Address1" class="form-control" />
+                        <span asp-validation-for="Location.l_Address1" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Location.l_Postcode"></label>
+                        <input asp-for="Location.l_Postcode" class="form-control" />
+                        <span asp-validation-for="Location.l_Postcode" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Location.l_State"></label>
+                        <input asp-for="Location.l_State" class="form-control" />
+                        <span asp-validation-for="Location.l_State" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label asp-for="Location.l_Address2"></label>
+                        <input asp-for="Location.l_Address2" class="form-control" />
+                        <span asp-validation-for="Location.l_Address2" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Location.l_District"></label>
+                        <input asp-for="Location.l_District" class="form-control" />
+                        <span asp-validation-for="Location.l_District" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bin Info -->
+            <h4>Bin Info</h4>
+            <div class="form-group">
+                <label asp-for="Bin.b_PlateNo"></label>
+                <input asp-for="Bin.b_PlateNo" class="form-control" />
+                <span asp-validation-for="Bin.b_PlateNo" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Create" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ml-2">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
