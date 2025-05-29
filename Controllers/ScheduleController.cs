@@ -15,11 +15,11 @@ namespace Kutip.Controllers
     public class ScheduleController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager; // Changed to ApplicationUser
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ScheduleController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager) // Changed to ApplicationUser
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -31,7 +31,10 @@ namespace Kutip.Controllers
             var userId = _userManager.GetUserId(User);
             var schedules = await _context.Schedules
                 .Where(s => s.UserId == userId)
+                .OrderBy(s => s.Date)
+                .ThenBy(s => s.Time)
                 .ToListAsync();
+
             return View(schedules);
         }
 
@@ -45,6 +48,7 @@ namespace Kutip.Controllers
 
             var userId = _userManager.GetUserId(User);
             var schedule = await _context.Schedules
+                .Include(s => s.User)
                 .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
 
             if (schedule == null)
@@ -58,17 +62,24 @@ namespace Kutip.Controllers
         // GET: Schedule/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Schedule
+            {
+                Date = DateTime.Today,
+                Time = DateTime.Now.TimeOfDay,
+                PickupStatus = "Pending"
+            });
         }
 
         // POST: Schedule/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Day,Time,PickupStatus")] Schedule schedule)
+        public async Task<IActionResult> Create([Bind("Id,Date,Time,PickupStatus")] Schedule schedule)
         {
             if (ModelState.IsValid)
             {
                 schedule.UserId = _userManager.GetUserId(User);
+                schedule.Day = schedule.Date.DayOfWeek.ToString();
+
                 _context.Add(schedule);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -98,7 +109,7 @@ namespace Kutip.Controllers
         // POST: Schedule/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Day,Time,PickupStatus,UserId")] Schedule schedule)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Date,Time,PickupStatus,UserId")] Schedule schedule)
         {
             if (id != schedule.Id)
             {
@@ -109,6 +120,7 @@ namespace Kutip.Controllers
             {
                 try
                 {
+                    schedule.Day = schedule.Date.DayOfWeek.ToString();
                     _context.Update(schedule);
                     await _context.SaveChangesAsync();
                 }

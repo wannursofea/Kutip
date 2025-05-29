@@ -16,26 +16,22 @@ namespace Kutip.Data
 
         public DbSet<Schedule> Schedules { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
 
-            builder.Entity<Schedule>(entity =>
+            modelBuilder.Entity<Schedule>(entity =>
             {
-                entity.HasOne(s => s.User)
-                      .WithMany()
-                      .HasForeignKey(s => s.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(e => e.Date)
+                    .HasColumnType("date");
 
-                entity.Property(s => s.Day)
-                      .HasMaxLength(10)
-                      .IsRequired();
+                entity.Property(e => e.Day)
+                    .HasMaxLength(10);
 
-                entity.Property(s => s.PickupStatus)
-                      .HasMaxLength(20)
-                      .IsRequired();
+                entity.Property(e => e.PickupStatus)
+                    .HasMaxLength(20)
+                    .HasDefaultValue("Pending");
             });
-
         }
 
         public DbSet<Customer> Customers { get; set; }

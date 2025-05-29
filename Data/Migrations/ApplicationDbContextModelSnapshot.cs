@@ -119,6 +119,9 @@ namespace Kutip.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date");
+
                     b.Property<string>("Day")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -137,8 +140,10 @@ namespace Kutip.Data.Migrations
                     b.Property<string>("b_PlateNo")
 >>>>>>> Stashed changes
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
 
 <<<<<<< Updated upstream
                     b.Property<TimeSpan>("Time")

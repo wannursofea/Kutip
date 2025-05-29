@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kutip.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250529010539_AddScheduleTable")]
+    [Migration("20250529030133_AddScheduleTable")]
     partial class AddScheduleTable
     {
         /// <inheritdoc />
@@ -121,6 +121,9 @@ namespace Kutip.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date");
+
                     b.Property<string>("Day")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -128,8 +131,10 @@ namespace Kutip.Data.Migrations
 
                     b.Property<string>("PickupStatus")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Pending");
 
                     b.Property<TimeSpan>("Time")
                         .HasColumnType("time");

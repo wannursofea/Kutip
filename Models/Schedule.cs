@@ -16,16 +16,22 @@ namespace Kutip.Models
         public string UserId { get; set; }
 
         [Required]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        public DateTime Date { get; set; }
+
+        [Required]
         [StringLength(10)]
-        public string Day { get; set; } // e.g., "Monday", "Tuesday", etc.
+        public string Day { get; set; } // Automatically calculated from Date
 
         [Required]
         [DataType(DataType.Time)]
+        [DisplayFormat(DataFormatString = "{0:hh\\:mm}", ApplyFormatInEditMode = true)]
         public TimeSpan Time { get; set; }
 
         [Required]
         [StringLength(20)]
-        public string PickupStatus { get; set; } // e.g., "Pending", "Completed", "Cancelled"
+        public string PickupStatus { get; set; } = "Pending"; // Default value
 
         // Navigation property
         public virtual ApplicationUser User { get; set; }
