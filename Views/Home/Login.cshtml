@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Welcome to Kutip!";
+    Layout = "~/Views/Shared/_SimpleLayout.cshtml";
+}
+
+<div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="text-center p-5 border rounded shadow-lg bg-white">
+        <h1 class="display-4 mb-4">Welcome to Kutip!</h1>
+        <p class="lead mb-5">Please log in to continue.</p>
+
+        <div class="d-grid gap-3 col-6 mx-auto">
+            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg">Login</a>
+        </div>
+    </div>
+</div>

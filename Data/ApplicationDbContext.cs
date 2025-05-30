@@ -10,6 +10,6 @@ namespace Kutip.Data
         {
         }
 
-        public DbSet<Product> Products { get; set; }
+        
     }
 }

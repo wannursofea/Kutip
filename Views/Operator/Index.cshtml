@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Operator Dashboard";
+}
+
+<h1>Operator Dashboard</h1>
+
+<p>Welcome, Operator! From here you can manage the system and users.</p>
+
+<div class="mt-4">
+    <a asp-action="CreateUser" class="btn btn-success">Create New User</a>
+    @* You might also add a link to a list of users here later:
+    <a asp-action="ListUsers" class="btn btn-info">View All Users</a> *@
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success mt-3" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}

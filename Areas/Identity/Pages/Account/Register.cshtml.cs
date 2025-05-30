@@ -23,6 +23,7 @@ using Kutip.Constants;
 
 namespace Kutip.Areas.Identity.Pages.Account
 {
+    [Authorize(Roles = "Operator")]
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<ApplicationUser> _signInManager;

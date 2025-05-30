@@ -9,34 +9,39 @@ namespace Kutip.Data
     {
         public static async Task SeedRolesAndAdminAsync(IServiceProvider service)
         {
-            //Seed Roles
-            var userManager = service.GetService<UserManager<ApplicationUser>>();
+            // Seed Roles
             var roleManager = service.GetService<RoleManager<IdentityRole>>();
-            await roleManager.CreateAsync(new IdentityRole(Roles.Operator.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.Driver.ToString()));
-            await roleManager.CreateAsync(new IdentityRole(Roles.Collector.ToString()));
 
-            // creating admin/operator
-
-            var user = new ApplicationUser
+            if (roleManager == null)
             {
-                UserName = "operatorKutip@gmail.com",
-                Email = "operatorKutip@gmail.com",
-                Name = "operatorKutip",
-                EmailConfirmed = true,
-                PhoneNumberConfirmed = true
-            };
-            var userInDb = await userManager.FindByEmailAsync(user.Email);
-            if (userInDb == null)
-            {
-                await userManager.CreateAsync(user, "Kutip1@"); //password
-                await userManager.AddToRoleAsync(user, Roles.Operator.ToString());
+                throw new InvalidOperationException("RoleManager service is not available.");
             }
-        }
 
-        internal static async Task SeedRolesAndAdminAsync(object serviceProvider)
-        {
-            throw new NotImplementedException();
+            // Iterate through all roles in your enum and create if they don't exist
+            foreach (var roleName in Enum.GetNames(typeof(Roles)))
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
+            }
+
+            //    // creating admin/operator
+
+            //    var user = new ApplicationUser
+            //    {
+            //        UserName = "operatorKutip@gmail.com",
+            //        Email = "operatorKutip@gmail.com",
+            //        Name = "operatorKutip",
+            //        EmailConfirmed = true,
+            //        PhoneNumberConfirmed = true
+            //    };
+            //    var userInDb = await userManager.FindByEmailAsync(user.Email);
+            //    if (userInDb == null)
+            //    {
+            //        await userManager.CreateAsync(user, "Kutip1@"); //password
+            //        await userManager.AddToRoleAsync(user, Roles.Operator.ToString());
+            //    }
         }
     }
 }

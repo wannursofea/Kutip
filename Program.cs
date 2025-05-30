@@ -41,10 +41,32 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+// DbSeeder start
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+    try
+    {
+        // This is the call to your DbSeeder
+        await DbSeeder.SeedRolesAndAdminAsync(serviceProvider);
+        Console.WriteLine("Database seeding completed successfully.");
+    }
+    catch (Exception ex)
+    {
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+// DbSeeder end
+
+//app.MapControllerRoute(
+//    name: "loginEntry",
+//    pattern: "login", 
+//    defaults: new { controller = "Home", action = "Login" });
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Login}/{id?}"); 
 
 app.MapRazorPages()
    .WithStaticAssets();
