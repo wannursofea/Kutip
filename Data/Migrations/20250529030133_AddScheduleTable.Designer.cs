@@ -4,6 +4,7 @@ using Kutip.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Kutip.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250529030133_AddScheduleTable")]
+    partial class AddScheduleTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,92 +111,6 @@ namespace Kutip.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Product");
-                });
-
-            modelBuilder.Entity("Kutip.Models.Bin", b =>
-                {
-                    b.Property<int>("b_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("b_ID"));
-
-                    b.Property<string>("b_PlateNo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("c_ID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("l_ID")
-                        .HasColumnType("int");
-
-                    b.HasKey("b_ID");
-
-                    b.HasIndex("c_ID");
-
-                    b.HasIndex("l_ID");
-
-                    b.ToTable("Bins");
-                });
-
-            modelBuilder.Entity("Kutip.Models.Customer", b =>
-                {
-                    b.Property<int>("c_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("c_ID"));
-
-                    b.Property<string>("c_ContactNo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("c_Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("c_Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("c_ID");
-
-                    b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("Kutip.Models.Location", b =>
-                {
-                    b.Property<int>("l_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("l_ID"));
-
-                    b.Property<string>("l_Address1")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("l_Address2")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("l_District")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("l_Postcode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("l_State")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("l_ID");
-
-                    b.ToTable("Locations");
                 });
 
             modelBuilder.Entity("Kutip.Models.Schedule", b =>
@@ -366,25 +283,6 @@ namespace Kutip.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Kutip.Models.Bin", b =>
-                {
-                    b.HasOne("Kutip.Models.Customer", "Customer")
-                        .WithMany("Bins")
-                        .HasForeignKey("c_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Kutip.Models.Location", "Location")
-                        .WithMany("Bins")
-                        .HasForeignKey("l_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("Location");
-                });
-
             modelBuilder.Entity("Kutip.Models.Schedule", b =>
                 {
                     b.HasOne("Kutip.Data.ApplicationUser", "User")
@@ -445,16 +343,6 @@ namespace Kutip.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Kutip.Models.Customer", b =>
-                {
-                    b.Navigation("Bins");
-                });
-
-            modelBuilder.Entity("Kutip.Models.Location", b =>
-                {
-                    b.Navigation("Bins");
                 });
 #pragma warning restore 612, 618
         }
