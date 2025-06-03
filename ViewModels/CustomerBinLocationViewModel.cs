@@ -1,4 +1,5 @@
 ﻿using Kutip.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Kutip.ViewModels
 {
@@ -7,6 +8,8 @@ namespace Kutip.ViewModels
         public Customer Customer { get; set; } = new Customer();
         public Bin Bin { get; set; } = new Bin();
         public Location Location { get; set; } = new Location();
+
+        public List<SelectListItem> ColAreaList { get; set; } = new List<SelectListItem>();
     }
 }
 

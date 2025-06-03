@@ -8,7 +8,7 @@ namespace Kutip.Models
         [Key]
         public int b_ID { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Plate number is required.")]
         [Display(Name = "Bin Plate No.")]
         [MaxLength(20)]
         public string b_PlateNo { get; set; } = "";
@@ -23,6 +23,7 @@ namespace Kutip.Models
         [ForeignKey("l_ID")]
         public virtual Location Location { get; set; }
 
+        public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
     }
 }
 

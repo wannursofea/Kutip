@@ -1,0 +1,74 @@
+﻿@model Kutip.ViewModels.CustomerBinLocationViewModel
+
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<h1 class="text-center">Customer Details</h1>
+<hr />
+
+<div class="container mt-4">
+    <div class="card shadow-lg rounded-3 mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5>Customer Information</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Name</dt>
+                <dd class="col-sm-9">@Model.Customer.c_Name</dd>
+
+                <dt class="col-sm-3">Contact Number</dt>
+                <dd class="col-sm-9">@Model.Customer.c_ContactNo</dd>
+
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.Customer.c_Email</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card shadow-lg rounded-3 mb-4">
+        <div class="card-header bg-success text-white">
+            <h5>Location Information</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Address Line 1</dt>
+                <dd class="col-sm-9">@Model.Location.l_Address1</dd>
+
+                <dt class="col-sm-3">Address Line 2</dt>
+                <dd class="col-sm-9">@Model.Location.l_Address2</dd>
+
+                <dt class="col-sm-3">District</dt>
+                <dd class="col-sm-9">@Model.Location.l_District</dd>
+
+                <dt class="col-sm-3">Postcode</dt>
+                <dd class="col-sm-9">@Model.Location.l_Postcode</dd>
+
+                <dt class="col-sm-3">State</dt>
+                <dd class="col-sm-9">@Model.Location.l_State</dd>
+
+                <dt class="col-sm-3">Collection Area</dt>
+                <dd class="col-sm-9">@Model.Location.l_ColArea</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="card shadow-lg rounded-3 mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5>Bin Information</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Plate Number</dt>
+                <dd class="col-sm-9">@Model.Bin.b_PlateNo</dd>
+
+             
+            </dl>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        <a asp-action="Edit" asp-route-id="@Model.Customer.c_ID" class="btn btn-warning ml-2">Edit</a>
+    </div>
+</div>

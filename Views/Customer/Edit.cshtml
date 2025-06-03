@@ -1,19 +1,47 @@
 ﻿@model Kutip.ViewModels.CustomerBinLocationViewModel
 
+
 @{
-    ViewData["Title"] = "Add Customer";
+    ViewData["Title"] = "Edit Customer";
 }
 
-<h1 class="text-center">Add Customer</h1>
+<h1 class="text-center">Edit Customer</h1>
 
 <hr />
 
 <!-- Centering container -->
 <div class="d-flex justify-content-center align-items-start" style="min-height: 100vh; padding-top: 40px;">
     <div class="col-md-6">
-        <form asp-action="Create" method="post">
+        <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <strong>Validation Errors:</strong>
+                    <ul>
+                        @foreach (var key in ViewData.ModelState.Keys)
+                        {
+                            var errors = ViewData.ModelState[key].Errors;
+                            foreach (var error in errors)
+                            {
+                                <li><strong>@key</strong>: @error.ErrorMessage</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+
+
+
+
+
+
+            <input type="hidden" asp-for="Customer.c_ID" />
+            <input type="hidden" asp-for="Bin.b_ID" />
+            <input type="hidden" asp-for="Bin.c_ID" />
+            <input type="hidden" asp-for="Bin.l_ID" />
+            <input type="hidden" asp-for="Location.l_ID" />
             <!-- Customer Info -->
             <h4>Customer</h4>
             <div class="form-group">
@@ -78,13 +106,12 @@
                 <label asp-for="Location.l_ColArea"></label>
                 <select asp-for="Location.l_ColArea" class="form-control" asp-items="Model.ColAreaList">
                 </select>
-
                 <span asp-validation-for="Location.l_ColArea" class="text-danger"></span>
             </div>
 
             <div class="form-group mt-3">
-                <input type="submit" value="Create" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary ml-2">Back to List</a>
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ml-2">Cancel</a>
             </div>
         </form>
     </div>
