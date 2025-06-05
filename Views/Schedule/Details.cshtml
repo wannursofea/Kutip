@@ -1,0 +1,315 @@
+﻿@model Kutip.Models.Schedule
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+@* Add Font Awesome for icons *@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    .schedule-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .schedule-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        margin-top: 1.5rem;
+    }
+
+    .card-header {
+        background: #f0f9ff;
+        border-bottom: 1px solid #bae6fd;
+        padding: 1.5rem;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-footer {
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem 1.5rem;
+        border-radius: 0 0 8px 8px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .page-title {
+        font-size: 1.875rem;
+        font-weight: bold;
+        color: #0369a1;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .page-title i {
+            color: #0284c7;
+            font-size: 1.75rem;
+            margin-right: 0.75rem;
+        }
+
+    .page-subtitle {
+        color: #0c4a6e;
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #0369a1;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .section-title i {
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+    .section-subtitle {
+        color: #0c4a6e;
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+    .detail-icon {
+        color: #6b7280;
+        font-size: 0.875rem;
+        width: 20px;
+        text-align: center;
+        margin-right: 0.75rem;
+    }
+
+    .detail-label {
+        font-weight: 500;
+        color: #374151;
+        min-width: 140px;
+        margin-right: 1rem;
+    }
+
+    .detail-value {
+        color: #1f2937;
+        flex: 1;
+    }
+
+    .btn-primary {
+        background-color: #0284c7;
+        border-color: #0284c7;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .btn-primary:hover {
+            background-color: #0369a1;
+            border-color: #0369a1;
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-danger {
+        background-color: #dc2626;
+        border-color: #dc2626;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .btn-outline:hover {
+            background-color: #f3f4f6;
+            text-decoration: none;
+            color: #374151;
+        }
+
+    .btn-icon {
+        margin-right: 0.5rem;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+        .status-badge.completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.in-progress {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+</style>
+
+<div class="schedule-container">
+    <h1 class="page-title">
+        <i class="fas fa-clipboard-list"></i>
+        Schedule Details
+    </h1>
+    <p class="page-subtitle">View complete information about this pickup schedule</p>
+
+    @* Display Success Message *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="schedule-card">
+        <div class="card-header">
+            <h3 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Schedule Information
+            </h3>
+            <p class="section-subtitle">Pickup schedule details and status</p>
+        </div>
+
+        <div class="card-body">
+            <div class="detail-row">
+                <i class="fas fa-calendar-alt detail-icon"></i>
+                <div class="detail-label">Pickup Date:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.s_Date)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-clock detail-icon"></i>
+                <div class="detail-label">Start Time:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.s_PickupTime)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-clock detail-icon"></i>
+                <div class="detail-label">End Time:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.s_PickupEnd)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-map-marker-alt detail-icon"></i>
+                <div class="detail-label">Location:</div>
+                <div class="detail-value">
+                    @if (Model.Location != null)
+                    {
+                        @Html.DisplayFor(model => model.Location.l_Address1)
+                    }
+                    else
+                    {
+                        <span class="text-muted">No location specified</span>
+                    }
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-box detail-icon"></i>
+                <div class="detail-label">Picked Up Bins:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.PickedUpBins)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-boxes detail-icon"></i>
+                <div class="detail-label">Total Bins:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.TotalBins)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-chart-pie detail-icon"></i>
+                <div class="detail-label">Status:</div>
+                <div class="detail-value">
+                    @{
+                        var today = DateTime.Today;
+                        var scheduleDate = Model.s_Date;
+                        var pickedUpBins = Model.PickedUpBins;
+                        var totalBins = Model.TotalBins;
+
+                        if (pickedUpBins >= totalBins && totalBins > 0)
+                        {
+                            <span class="status-badge completed">Completed</span>
+                        }
+                        else if (scheduleDate < today)
+                        {
+                            <span class="status-badge pending">Past Due</span>
+                        }
+                        else if (scheduleDate == today)
+                        {
+                            <span class="status-badge in-progress">Today</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge pending">Scheduled</span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a asp-action="Index" class="btn-outline">
+                <i class="fas fa-arrow-left btn-icon"></i>
+                Back to List
+            </a>
+        </div>
+    </div>
+</div>

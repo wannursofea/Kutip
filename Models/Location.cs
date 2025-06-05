@@ -28,6 +28,10 @@ namespace Kutip.Models
         [Display(Name = "State")]
         public string l_State { get; set; } = "";
 
+        [Required]
+        [Display(Name = "Collection Area")]
+        public string l_ColArea { get; set; } = "";
+
         // Navigation property to Bins
         public virtual ICollection<Bin> Bins { get; set; } = new List<Bin>();
     }

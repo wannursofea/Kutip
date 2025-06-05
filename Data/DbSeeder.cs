@@ -1,7 +1,11 @@
-﻿using Kutip.Constants;
+﻿using Kutip.Constants; // Assuming your Roles enum is here
 using Kutip.Data;
+using Kutip.Models; // Assuming ApplicationUser is here
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.Linq; // Added for .FirstOrDefault() or .SingleOrDefault()
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection; // For GetService
 
 namespace Kutip.Data
 {
@@ -9,16 +13,12 @@ namespace Kutip.Data
     {
         public static async Task SeedRolesAndAdminAsync(IServiceProvider service)
         {
-            // Seed Roles
-            var roleManager = service.GetService<RoleManager<IdentityRole>>();
+            // Get managers from the service provider
+            var roleManager = service.GetRequiredService<RoleManager<IdentityRole>>(); // Use GetRequiredService for clarity and better error if not found
+            var userManager = service.GetRequiredService<UserManager<ApplicationUser>>();
 
-            if (roleManager == null)
-            {
-                throw new InvalidOperationException("RoleManager service is not available.");
-            }
-
-            // Iterate through all roles in your enum and create if they don't exist
-            foreach (var roleName in Enum.GetNames(typeof(Roles)))
+            // 1. Seed Roles
+            foreach (var roleName in Enum.GetNames<Roles>())
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
@@ -26,22 +26,52 @@ namespace Kutip.Data
                 }
             }
 
-            //    // creating admin/operator
+            // 2. Seed Admin/Operator User (as per your current code)
+            string operatorEmail = "kutip.noreply@gmail.com";
+            string operatorPassword = "KutipPass123!"; 
+            string operatorName = "operatorKutip"; //QWERTY!@#123q
+            // every new created user will use default initial password of QWERTY!@#123q
 
-            //    var user = new ApplicationUser
-            //    {
-            //        UserName = "operatorKutip@gmail.com",
-            //        Email = "operatorKutip@gmail.com",
-            //        Name = "operatorKutip",
-            //        EmailConfirmed = true,
-            //        PhoneNumberConfirmed = true
-            //    };
-            //    var userInDb = await userManager.FindByEmailAsync(user.Email);
-            //    if (userInDb == null)
-            //    {
-            //        await userManager.CreateAsync(user, "Kutip1@"); //password
-            //        await userManager.AddToRoleAsync(user, Roles.Operator.ToString());
-            //    }
+            var operatorUser = await userManager.FindByEmailAsync(operatorEmail);
+
+            if (operatorUser == null) // User does not exist, so create it
+            {
+                operatorUser = new ApplicationUser // Assign to operatorUser variable
+                {
+                    UserName = operatorEmail,
+                    Email = operatorEmail,
+                    Name = operatorName,
+                    EmailConfirmed = true,
+                    PhoneNumberConfirmed = true
+                };
+
+                var createResult = await userManager.CreateAsync(operatorUser, operatorPassword);
+
+                if (createResult.Succeeded)
+                {
+                    // Assign role if user created successfully
+                    if (!await userManager.IsInRoleAsync(operatorUser, Roles.Operator.ToString()))
+                    {
+                        await userManager.AddToRoleAsync(operatorUser, Roles.Operator.ToString());
+                    }
+                }
+                else
+                {
+                    // Log errors if creation failed (e.g., password policy)
+                    foreach (var error in createResult.Errors)
+                    {
+                        Console.WriteLine($"Error creating operator user: {error.Description}");
+                    }
+                }
+            }
+            else // User already exists
+            {
+                // Ensure the existing user is in the Operator role
+                if (!await userManager.IsInRoleAsync(operatorUser, Roles.Operator.ToString()))
+                {
+                    await userManager.AddToRoleAsync(operatorUser, Roles.Operator.ToString());
+                }
+            }
         }
     }
 }

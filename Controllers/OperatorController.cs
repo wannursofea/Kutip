@@ -1,28 +1,37 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering; 
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Kutip.Data;
 using Kutip.Constants; 
-using Kutip.Data;    
+using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.WebUtilities; 
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace Kutip.Controllers
+
 {
-    [Authorize(Roles = nameof(Roles.Operator))] // Only Operator role can access this controller
+    [Authorize(Roles = nameof(Roles.Operator))] 
     public class OperatorController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailSender _emailSender;
 
-        public OperatorController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public OperatorController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IEmailSender emailSender)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _emailSender = emailSender;
         }
+
 
         // --- Operator Dashboard/Index (existing from previous steps) ---
         public IActionResult Index()
@@ -31,80 +40,7 @@ namespace Kutip.Controllers
             return View();
         }
 
-        // --- Action to display the user creation form ---
-        [HttpGet]
-        public async Task<IActionResult> CreateUser()
-        {
-            ViewData["Title"] = "Create New User";
-            // Get all roles except Operator for assignment dropdown
-            var roles = await _roleManager.Roles
-                                         .Where(r => r.Name != nameof(Roles.Operator)) // Exclude Operator role
-                                         .Select(r => new SelectListItem { Value = r.Name, Text = r.Name })
-                                         .ToListAsync();
-            ViewBag.Roles = roles;
-            return View();
-        }
-
-        // --- Action to handle the user creation form submission ---
-        [HttpPost]
-        [ValidateAntiForgeryToken] // Important for security
-        public async Task<IActionResult> CreateUser(CreateUserInputModel model)
-        {
-            ViewData["Title"] = "Create New User"; // Set title for redisplay
-
-            // Re-populate roles for dropdown in case of ModelState errors
-            var roles = await _roleManager.Roles
-                                         .Where(r => r.Name != nameof(Roles.Operator))
-                                         .Select(r => new SelectListItem { Value = r.Name, Text = r.Name })
-                                         .ToListAsync();
-            ViewBag.Roles = roles;
-
-            if (ModelState.IsValid)
-            {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Name = model.Name };
-                var result = await _userManager.CreateAsync(user, model.Password);
-
-                if (result.Succeeded)
-                {
-                    // Assign the selected role
-                    if (await _roleManager.RoleExistsAsync(model.RoleName))
-                    {
-                        var roleResult = await _userManager.AddToRoleAsync(user, model.RoleName);
-                        if (!roleResult.Succeeded)
-                        {
-                            // If role assignment fails, log errors and potentially delete user or flag
-                            _userManager.DeleteAsync(user); // Clean up user if role assignment fails
-                            ModelState.AddModelError(string.Empty, "Failed to assign role to user.");
-                            foreach (var error in roleResult.Errors)
-                            {
-                                ModelState.AddModelError(string.Empty, error.Description);
-                            }
-                            return View(model);
-                        }
-                    }
-                    else
-                    {
-                        // This case should ideally not happen if roles list is populated correctly
-                        ModelState.AddModelError(string.Empty, $"Selected role '{model.RoleName}' does not exist.");
-                        _userManager.DeleteAsync(user); // Clean up user if role is invalid
-                        return View(model);
-                    }
-
-                    TempData["SuccessMessage"] = $"User '{model.Name}' created and assigned to role '{model.RoleName}' successfully!";
-                    return RedirectToAction(nameof(Index)); // Redirect to Operator's main dashboard
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-            }
-
-            // If ModelState is not valid, or user creation failed, return to view with errors
-            return View(model);
-        }
-
-        // --- Input Model for User Creation Form ---
+        // --- Inner Class: CreateUserInputModel ---
         public class CreateUserInputModel
         {
             [Required]
@@ -113,7 +49,7 @@ namespace Kutip.Controllers
 
             [Required]
             [EmailAddress]
-            [Display(Name = "Email")]
+            [Display(Name = "Email Address")]
             public string Email { get; set; }
 
             [Required]
@@ -129,7 +65,123 @@ namespace Kutip.Controllers
 
             [Required]
             [Display(Name = "Role")]
-            public string RoleName { get; set; } // To hold the selected role (Driver/Collector)
+            public string RoleName { get; set; } // Matches asp-for="RoleName" in your view
         }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateUser()
+        {
+            ViewData["Title"] = "Create New User";
+
+            ViewBag.Roles = await _roleManager.Roles
+                                         .Where(r => r.Name == Roles.Collector.ToString() || r.Name == Roles.Driver.ToString())
+                                         .Select(r => new SelectListItem { Value = r.Name, Text = r.Name })
+                                         .ToListAsync();
+            
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateUser(CreateUserInputModel model)
+        {            
+            ViewBag.Roles = _roleManager.Roles
+                                        .Where(r => r.Name == Roles.Collector.ToString() || r.Name == Roles.Driver.ToString())
+                                        .Select(r => new SelectListItem { Value = r.Name, Text = r.Name })
+                                        .ToList();
+
+            if (ModelState.IsValid)
+            {
+                // Gmail Check
+                if (model.RoleName == Roles.Collector.ToString() || model.RoleName == Roles.Driver.ToString())
+                {
+                    if (!Regex.IsMatch(model.Email, @"@gmail\.com$", RegexOptions.IgnoreCase))
+                    {
+                        ModelState.AddModelError("Email", "Only Gmail accounts are allowed for Collector and Driver roles.");
+                        return View(model);
+                    }
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email, 
+                    Email = model.Email,
+                    Name = model.Name, 
+                    EmailConfirmed = false 
+                };
+
+                // Create the user with the provided password
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    // Assign role
+                    if (!string.IsNullOrEmpty(model.RoleName))
+                    {
+                        await _userManager.AddToRoleAsync(user, model.RoleName);
+                    }
+
+                    // --- Conditional Email Sending for Collector and Driver Roles ---
+                    if (model.RoleName == Roles.Collector.ToString() || model.RoleName == Roles.Driver.ToString())
+                    {
+                        // Generate email confirmation token
+                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                        var callbackUrl = Url.Page(
+                            "/Account/ConfirmEmail",
+                            pageHandler: null,
+                            values: new { area = "Identity", userId = user.Id, code = code },
+                            protocol: Request.Scheme);
+
+                        // Generate password reset token
+                        var resetPasswordToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+                        resetPasswordToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetPasswordToken));
+                        var resetPasswordUrl = Url.Page(
+                            "/Account/ResetPassword",
+                            pageHandler: null,
+                            values: new { area = "Identity", code = resetPasswordToken, email = user.Email },
+                            protocol: Request.Scheme);
+
+                        // Construct email message
+                        var subject = "Welcome to Kutip! Your New Account - Action Required";
+                        var message = $"<p>Hello {model.Name},</p>" +
+                                      $"<p>Your account for Kutip Waste Management has been created as a **{model.RoleName}**.</p>" +
+                                      $"<p>Before you can log in, you need to confirm your email and change your temporary password:</p>" +
+                                      $"<ol>" +
+                                      $"<li>Please confirm your email address by clicking <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>this link</a>.</li>" +
+                                      $"<li>Once your email is confirmed, you **must** change your password using the following link: <a href='{HtmlEncoder.Default.Encode(resetPasswordUrl)}'>Change Your Password</a></li>" +
+                                      $"</ol>" +
+                                      $"<p>Your current password is the one you entered during registration.</p>" + // Clarify
+                                      $"<p>If you have any questions, please contact our support.</p>" +
+                                      $"<p>Thank you,</p>" +
+                                      $"<p>The Kutip Team</p>";
+
+                        // Send the email
+                        await _emailSender.SendEmailAsync(model.Email, subject, message);
+
+                        TempData["SuccessMessage"] = $"User '{model.Email}' ({model.RoleName}) created successfully. A confirmation and password setup email has been sent.";
+                    }
+                    else 
+                    {
+                        var confirmToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        await _userManager.ConfirmEmailAsync(user, confirmToken);
+                        TempData["SuccessMessage"] = $"User '{model.Email}' ({model.RoleName}) created successfully. No confirmation email sent for this role.";
+                    }
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // If user creation failed, add errors to ModelState
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            // If ModelState is invalid, return to view with validation errors
+            return View(model);
+        }
+
     }
 }

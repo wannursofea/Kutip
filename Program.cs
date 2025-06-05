@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Kutip.Services;
 using Kutip.Data;
 using Microsoft.AspNetCore.Identity;
@@ -8,17 +9,52 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+{
+    options.UseSqlServer(connectionString, sqlServerOptions =>
+    {
+        sqlServerOptions.CommandTimeout(120); 
+    });
+});
 
 //builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultUI()
-    .AddDefaultTokenProviders();
+//builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+//    .AddEntityFrameworkStores<ApplicationDbContext>()
+//    .AddDefaultUI()
+//    .AddDefaultTokenProviders();
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    // Sign-in options (keep if you have specific needs like confirmed account)
+    options.SignIn.RequireConfirmedEmail = false; // Set to true if you want to require email confirmation
+
+    // Password settings - ADD THESE LINES FOR PASSWORD REQUIREMENTS
+    options.Password.RequireDigit = true;           
+    options.Password.RequireLowercase = true;       
+    options.Password.RequireNonAlphanumeric = true; 
+    options.Password.RequireUppercase = true;       
+    options.Password.RequiredLength = 8;            
+    options.Password.RequiredUniqueChars = 1;       
+
+    // Lockout settings (optional, but good for security)
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5); // User locked out for 5 minutes
+    options.Lockout.MaxFailedAccessAttempts = 5;                      // After 5 failed attempts, user is locked out
+    options.Lockout.AllowedForNewUsers = true;
+
+    // User settings
+    options.User.RequireUniqueEmail = true; // Ensures email is unique
+
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders(); 
+
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 var app = builder.Build();
 

@@ -4,44 +4,347 @@
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
+@* Add Font Awesome for icons *@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<h4>Schedule</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Date" class="control-label"></label>
-                <input asp-for="Date" class="form-control" />
-                <span asp-validation-for="Date" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Day" class="control-label"></label>
-                <input asp-for="Day" class="form-control" />
-                <span asp-validation-for="Day" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Time" class="control-label"></label>
-                <input asp-for="Time" class="form-control" />
-                <span asp-validation-for="Time" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<style>
+    .schedule-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .schedule-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        margin-top: 1.5rem;
+    }
+
+    .card-header {
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1.5rem;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-footer {
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem 1.5rem;
+        border-radius: 0 0 8px 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .form-label i {
+            color: #6b7280;
+            font-size: 0.875rem;
+            width: 16px;
+            text-align: center;
+        }
+
+    .form-control {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+        .form-control:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+    .btn-create {
+        background-color: #000;
+        border-color: #000;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+        .btn-create:hover {
+            background-color: #1f2937;
+            border-color: #1f2937;
+        }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        border-color: #6b7280;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-outline:hover {
+            background-color: #f3f4f6;
+            text-decoration: none;
+            color: #374151;
+        }
+
+    .page-title {
+        font-size: 1.875rem;
+        font-weight: bold;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    .validation-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+</style>
+
+<div class="schedule-container">
+    <h1 class="page-title">Create Schedule</h1>
+    <p class="page-subtitle">Add a new pickup schedule to the system</p>
+
+    @* Display Success Message *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* Display Error Message *@
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="schedule-card">
+        <div class="card-header">
+            <h3 class="section-title">Schedule Details</h3>
+            <p class="section-subtitle">Enter the pickup date, time window, and location information</p>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Create" id="scheduleForm">
+                @* The validation summary will show model state errors *@
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                @* Row 1: Pickup Date and Location *@
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="s_Date" class="form-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Pickup Date
+                        </label>
+                        <input asp-for="s_Date" type="date" class="form-control" />
+                        <span asp-validation-for="s_Date" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="l_ID" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Location
+                        </label>
+                        <select asp-for="l_ID" class="form-control" asp-items="ViewBag.l_ID">
+                            <option value="">Select a location</option>
+                        </select>
+                        <span asp-validation-for="l_ID" class="text-danger"></span>
+                    </div>
+                </div>
+
+                @* Row 2: Start Time and End Time *@
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="s_PickupTime" class="form-label">
+                            <i class="fas fa-clock"></i>
+                            Start Time
+                        </label>
+                        <input asp-for="s_PickupTime" type="time" class="form-control" id="startTime" onchange="validateTimes()" />
+                        <span asp-validation-for="s_PickupTime" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="s_PickupEnd" class="form-label">
+                            <i class="fas fa-clock"></i>
+                            End Time
+                        </label>
+                        <input asp-for="s_PickupEnd" type="time" class="form-control" id="endTime" onchange="validateTimes()" />
+                        <span asp-validation-for="s_PickupEnd" class="text-danger"></span>
+                        <span id="timeValidationError" class="validation-error" style="display: none;">End time must be later than start time</span>
+                    </div>
+                </div>
+
+                @* Row 3: Picked Up Bins and Total Bins *@
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="PickedUpBins" class="form-label">
+                            <i class="fas fa-box"></i>
+                            Picked Up Bins
+                        </label>
+                        <input asp-for="PickedUpBins" type="number" class="form-control" min="0" value="0" step="1"
+                               id="pickedUpBins"
+                               oninput="this.value = Math.max(0, parseInt(this.value) || 0); validateBins()"
+                               onchange="validateBins()" />
+                        <span asp-validation-for="PickedUpBins" class="text-danger"></span>
+                        <span id="binsValidationError" class="validation-error" style="display: none;">Picked up bins cannot exceed total bins</span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="TotalBins" class="form-label">
+                            <i class="fas fa-boxes"></i>
+                            Total Bins
+                        </label>
+                        <input asp-for="TotalBins" type="number" class="form-control" min="0" value="0" step="1"
+                               id="totalBins"
+                               oninput="this.value = Math.max(0, parseInt(this.value) || 0); validateBins()"
+                               onchange="validateBins()" />
+                        <span asp-validation-for="TotalBins" class="text-danger"></span>
+                    </div>
+                </div>
+
+                @* Create Schedule Button *@
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-create" id="submitBtn">Create Schedule</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card-footer">
+            <a asp-action="Index" class="btn-outline">Cancel</a>
+            <button type="button" class="btn-outline" onclick="resetForm()">Reset Form</button>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<script>
+    function validateBins() {
+        const pickedUpBins = parseInt(document.getElementById('pickedUpBins').value) || 0;
+        const totalBins = parseInt(document.getElementById('totalBins').value) || 0;
+        const errorSpan = document.getElementById('binsValidationError');
+        const pickedUpInput = document.getElementById('pickedUpBins');
+
+        if (pickedUpBins > totalBins && totalBins > 0) {
+            errorSpan.style.display = 'block';
+            pickedUpInput.classList.add('is-invalid');
+            return false;
+        } else {
+            errorSpan.style.display = 'none';
+            pickedUpInput.classList.remove('is-invalid');
+            return true;
+        }
+    }
+
+    function validateTimes() {
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        const errorSpan = document.getElementById('timeValidationError');
+        const endTimeInput = document.getElementById('endTime');
+
+        if (startTime && endTime) {
+            if (endTime <= startTime) {
+                errorSpan.style.display = 'block';
+                endTimeInput.classList.add('is-invalid');
+                return false;
+            } else {
+                errorSpan.style.display = 'none';
+                endTimeInput.classList.remove('is-invalid');
+                return true;
+            }
+        }
+        return true;
+    }
+
+    function validateForm() {
+        const binsValid = validateBins();
+        const timesValid = validateTimes();
+        return binsValid && timesValid;
+    }
+
+    // Add form submission validation
+    document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    function resetForm() {
+        document.getElementById('scheduleForm').reset();
+
+        // Set bin fields back to 0 after reset
+        document.querySelector('input[name="PickedUpBins"]').value = '0';
+        document.querySelector('input[name="TotalBins"]').value = '0';
+
+        // Clear custom validation messages and styles
+        document.getElementById('binsValidationError').style.display = 'none';
+        document.getElementById('timeValidationError').style.display = 'none';
+        document.getElementById('pickedUpBins').classList.remove('is-invalid');
+        document.getElementById('endTime').classList.remove('is-invalid');
+
+        // Clear any validation messages
+        var validationSpans = document.querySelectorAll('.text-danger');
+        validationSpans.forEach(function(span) {
+            if (span.getAttribute('data-valmsg-for')) {
+                span.textContent = '';
+            }
+        });
+    }
+</script>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -1,0 +1,259 @@
+﻿@model Kutip.Models.Schedule
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+@* Add Font Awesome for icons *@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    .schedule-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .schedule-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 0;
+        margin-top: 1.5rem;
+    }
+
+    .card-header {
+        background: #fef2f2;
+        border-bottom: 1px solid #fecaca;
+        padding: 1.5rem;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-footer {
+        background: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        padding: 1rem 1.5rem;
+        border-radius: 0 0 8px 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .warning-icon {
+        color: #dc2626;
+        font-size: 1.5rem;
+        margin-right: 0.75rem;
+    }
+
+    .page-title {
+        font-size: 1.875rem;
+        font-weight: bold;
+        color: #dc2626;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .page-subtitle {
+        color: #7f1d1d;
+        margin-bottom: 0;
+        font-weight: 500;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #dc2626;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .section-subtitle {
+        color: #7f1d1d;
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+    .detail-icon {
+        color: #6b7280;
+        font-size: 0.875rem;
+        width: 20px;
+        text-align: center;
+        margin-right: 0.75rem;
+    }
+
+    .detail-label {
+        font-weight: 500;
+        color: #374151;
+        min-width: 140px;
+        margin-right: 1rem;
+    }
+
+    .detail-value {
+        color: #1f2937;
+        flex: 1;
+    }
+
+    .btn-delete {
+        background-color: #dc2626;
+        border-color: #dc2626;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+        .btn-delete:hover {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+            color: white;
+        }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: 500;
+    }
+
+        .btn-outline:hover {
+            background-color: #f3f4f6;
+            text-decoration: none;
+            color: #374151;
+        }
+
+    .alert-warning {
+        background-color: #fef3c7;
+        border: 1px solid #f59e0b;
+        color: #92400e;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .alert-warning i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+</style>
+
+<div class="schedule-container">
+    <h1 class="page-title">
+        <i class="fas fa-exclamation-triangle warning-icon"></i>
+        Delete Schedule
+    </h1>
+    <p class="page-subtitle">This action cannot be undone</p>
+
+    <div class="alert-warning">
+        <i class="fas fa-exclamation-circle"></i>
+        <div>
+            <strong>Warning:</strong> You are about to permanently delete this schedule. This action cannot be reversed.
+        </div>
+    </div>
+
+    <div class="schedule-card">
+        <div class="card-header">
+            <h3 class="section-title">
+                <i class="fas fa-calendar-times" style="margin-right: 0.5rem; font-size: 1rem;"></i>
+                Schedule Information
+            </h3>
+            <p class="section-subtitle">Review the details before confirming deletion</p>
+        </div>
+
+        <div class="card-body">
+            <div class="detail-row">
+                <i class="fas fa-calendar-alt detail-icon"></i>
+                <div class="detail-label">Pickup Date:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.s_Date)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-clock detail-icon"></i>
+                <div class="detail-label">Start Time:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.s_PickupTime)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-clock detail-icon"></i>
+                <div class="detail-label">End Time:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.s_PickupEnd)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-map-marker-alt detail-icon"></i>
+                <div class="detail-label">Location:</div>
+                <div class="detail-value">
+                    @if (Model.Location != null)
+                    {
+                        @Html.DisplayFor(model => model.Location.l_Address1)
+                    }
+                    else
+                    {
+                        <span class="text-muted">No location specified</span>
+                    }
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-box detail-icon"></i>
+                <div class="detail-label">Picked Up Bins:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.PickedUpBins)</div>
+            </div>
+
+            <div class="detail-row">
+                <i class="fas fa-boxes detail-icon"></i>
+                <div class="detail-label">Total Bins:</div>
+                <div class="detail-value">@Html.DisplayFor(model => model.TotalBins)</div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <a asp-action="Index" class="btn-outline">
+                <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
+                Cancel
+            </a>
+            <form asp-action="Delete" style="display: inline;">
+                <input type="hidden" asp-for="s_ID" />
+                <button type="submit" class="btn btn-delete" onclick="return confirmDelete()">
+                    <i class="fas fa-trash-alt" style="margin-right: 0.5rem;"></i>
+                    Delete Schedule
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete() {
+        return confirm('Are you absolutely sure you want to delete this schedule? This action cannot be undone.');
+    }
+</script>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

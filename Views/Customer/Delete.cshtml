@@ -1,0 +1,41 @@
+﻿@model Kutip.Models.Customer
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this customer?</h3>
+
+<textarea>All data related to the customer will be deleted</textarea>
+<div>
+    <h4>Customer</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.c_Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.c_Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.c_ContactNo)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.c_ContactNo)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.c_Email)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.c_Email)
+        </dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="c_ID" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

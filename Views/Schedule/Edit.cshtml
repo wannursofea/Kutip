@@ -1,0 +1,105 @@
+﻿@model Kutip.Models.Schedule
+
+@{
+    ViewData["Title"] = "Edit";
+
+    var currentUser = await UserManager.GetUserAsync(User);
+    var isOperator = await UserManager.IsInRoleAsync(currentUser, Kutip.Constants.Roles.Operator.ToString());
+}
+
+<h1>Edit</h1>
+
+<h4>Schedule</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="s_ID" />
+
+            <div class="form-group">
+                <label asp-for="AssignedUser_ID" class="control-label"></label>
+                @if (isOperator)
+                {
+                    <select asp-for="AssignedUser_ID" class="form-control" asp-items="ViewBag.AssignedUsers">
+                        <option value="">-- Select Assigned User --</option>
+                    </select>
+                }
+                else
+                {
+                    <input asp-for="AssignedUser.Name" class="form-control" disabled /> 
+                    <input type="hidden" asp-for="AssignedUser_ID" /> 
+                }
+                <span asp-validation-for="AssignedUser_ID" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="b_ID" class="control-label"></label>
+                @if (isOperator)
+                {
+                    <select asp-for="b_ID" class="form-control" asp-items="ViewBag.Bins">
+                        <option value="">-- Select Bin --</option>
+                    </select>
+                }
+                else
+                {
+                    <input asp-for="Bin.Location.l_Address1" class="form-control" disabled /> 
+                    <input type="hidden" asp-for="b_ID" />
+                }
+                <span asp-validation-for="b_ID" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="s_Date" class="control-label"></label>
+                <input asp-for="s_Date" class="form-control" />
+                <span asp-validation-for="s_Date" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="s_PickupTime" class="control-label"></label>
+                <input asp-for="s_PickupTime" class="form-control" />
+                <span asp-validation-for="s_PickupTime" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="l_ID" class="control-label"></label>
+                @if (isOperator)
+                {
+                    <select asp-for="l_ID" class="form-control" asp-items="ViewBag.Locations"> 
+                        <option value="">-- Select Location --</option>
+                    </select>
+                }
+                else
+                {
+                    <input asp-for="Location.l_Address1" class="form-control" disabled /> 
+                    <input type="hidden" asp-for="l_ID" /> 
+                }
+                <span asp-validation-for="l_ID" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PickedUpBins" class="control-label"></label>
+                <input asp-for="PickedUpBins" class="form-control" />
+                <span asp-validation-for="PickedUpBins" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="TotalBins" class="control-label"></label>
+                <input asp-for="TotalBins" class="form-control" />
+                <span asp-validation-for="TotalBins" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

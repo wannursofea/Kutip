@@ -1,0 +1,60 @@
+﻿@model IEnumerable<Kutip.Models.Location>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.l_Address1)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.l_Address2)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.l_Postcode)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.l_District)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.l_State)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.l_Address1)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.l_Address2)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.l_Postcode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.l_District)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.l_State)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.l_ID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.l_ID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.l_ID">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
