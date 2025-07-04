@@ -1,20 +1,1423 @@
-﻿@{
+﻿@model Kutip.ViewModels.OperatorDashboardViewModel
+@using System.Text.Json
+
+@{
     ViewData["Title"] = "Operator Dashboard";
 }
 
-<h1>Operator Dashboard</h1>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-<p>Welcome, Operator! From here you can manage the system and users.</p>
+<!-- Add Select2 for searchable dropdowns -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<div class="mt-4">
-    <a asp-action="CreateUser" class="btn btn-success">Create New User</a>
-    @* You might also add a link to a list of users here later:
-    <a asp-action="ListUsers" class="btn btn-info">View All Users</a> *@
+<style>
+    :root {
+        --kutip-primary: rgb(17, 162, 136);
+        --kutip-secondary: rgb(118, 215, 189);
+        --kutip-success: #059669;
+        --kutip-danger: #dc2626;
+        --kutip-warning: #d97706;
+        --kutip-info: #0891b2;
+        --kutip-light: #f8fafc;
+        --kutip-dark: #1e293b;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --border-radius: 8px;
+        --transition: all 0.2s ease-in-out;
+    }
+
+    body {
+        background-color: #f1f5f9;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .dashboard-container {
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--kutip-primary) 0%, rgb(78, 222, 208) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .dashboard-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .dashboard-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+
+    .filter-section {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+
+        .filter-section:first-of-type {
+            border-left: 4px solid var(--kutip-primary);
+        }
+
+        .filter-section:last-of-type {
+            border-left: 4px solid var(--kutip-success);
+        }
+
+    .status-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .status-card {
+        background: white;
+        padding: 1.25rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+
+    .card-text-content {
+        flex-grow: 1;
+    }
+
+    .metric-icon-wrapper {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+    }
+
+    .metric-icon {
+        font-size: 1.8rem;
+        opacity: 1;
+        position: static;
+        right: auto;
+        top: auto;
+    }
+
+    .status-card.success .metric-icon-wrapper {
+        background-color: #dcfce7;
+    }
+
+    .status-card.danger .metric-icon-wrapper {
+        background-color: #fee2e2;
+    }
+
+    .status-card.info .metric-icon-wrapper {
+        background-color: #bfdbfe;
+    }
+
+    .status-card.warning .metric-icon-wrapper {
+        background-color: #fef3c7;
+    }
+
+    .status-card.primary .metric-icon-wrapper {
+        background-color: #dbeafe;
+    }
+
+    .status-card.success .metric-icon {
+        color: var(--kutip-success);
+    }
+
+    .status-card.danger .metric-icon {
+        color: var(--kutip-danger);
+    }
+
+    .status-card.info .metric-icon {
+        color: var(--kutip-info);
+    }
+
+    .status-card.warning .metric-icon {
+        color: var(--kutip-warning);
+    }
+
+    .status-card.primary .metric-icon {
+        color: var(--kutip-primary);
+    }
+
+    .status-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .status-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--kutip-dark);
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+
+    .status-label {
+        color: var(--kutip-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .charts-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+        .charts-section.two-column-charts {
+            grid-template-columns: 1fr 1fr;
+        }
+
+    .chart-container {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+        position: relative;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .chart-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--kutip-dark);
+        margin: 0;
+    }
+
+    .download-btn {
+        background: var(--kutip-success);
+        color: white;
+        border: none;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+        .download-btn:hover {
+            background: #047857;
+        }
+
+    .bottom-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+    }
+
+    .activity-section {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+    }
+
+    .activity-list {
+        max-height: 250px;
+        overflow-y: auto;
+        margin-top: 0.75rem;
+    }
+
+    .activity-item {
+        padding: 0.6rem;
+        border-left: 3px solid #e2e8f0;
+        margin-bottom: 0.5rem;
+        background: #f8fafc;
+        border-radius: 0 4px 4px 0;
+        font-size: 0.8rem;
+    }
+
+        .activity-item.completed {
+            border-left-color: var(--kutip-success);
+        }
+
+        .activity-item.partial {
+            border-left-color: var(--kutip-warning);
+        }
+
+        .activity-item.missed {
+            border-left-color: var(--kutip-danger);
+        }
+
+        .activity-item.pending {
+            border-left-color: var(--kutip-secondary);
+        }
+
+    .quick-actions {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+    }
+
+    .action-btn {
+        display: block;
+        width: 100%;
+        padding: 0.6rem;
+        margin-bottom: 0.4rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-decoration: none;
+        text-align: center;
+        transition: var(--transition);
+    }
+
+    .btn-success {
+        background: var(--kutip-success);
+        color: white;
+    }
+
+    .btn-info {
+        background: var(--kutip-info);
+        color: white;
+    }
+
+    .btn-warning {
+        background: var(--kutip-warning);
+        color: white;
+    }
+
+    .btn-primary {
+        background: var(--kutip-primary);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #047857;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #0e7490;
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background: #b45309;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .form-control, .form-select {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--kutip-primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+
+    .btn {
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-primary {
+        background: var(--kutip-primary);
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+    .btn-download-csv {
+        background: var(--kutip-success);
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+        margin-left: 0.4rem;
+    }
+
+        .btn-download-csv:hover {
+            background: #047857;
+            color: white;
+        }
+
+    .status-badge {
+        padding: 0.2rem 0.4rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-secondary {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .system-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--kutip-primary);
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        color: var(--kutip-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Search and list styles */
+    .search-section {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1rem;
+    }
+
+    .truck-schedule-list, .driver-performance-list {
+        max-height: 400px;
+        overflow-y: auto;
+        margin-top: 0.75rem;
+    }
+
+    .truck-schedule-item, .driver-performance-item {
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        transition: var(--transition);
+    }
+
+        .truck-schedule-item:hover, .driver-performance-item:hover {
+            background: #f1f5f9;
+            border-color: var(--kutip-primary);
+        }
+
+        .truck-schedule-item:last-child, .driver-performance-item:last-child {
+            margin-bottom: 0;
+        }
+
+    .stat-mini {
+        text-align: center;
+    }
+
+    .stat-mini-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 0.2rem;
+    }
+
+    .stat-mini-label {
+        font-size: 0.65rem;
+        color: var(--kutip-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .efficiency-bar {
+        width: 100%;
+        height: 6px;
+        background-color: #e2e8f0;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .efficiency-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--kutip-danger) 0%, var(--kutip-warning) 50%, var(--kutip-success) 100%);
+        transition: width 0.3s ease;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 1024px) {
+        .charts-section {
+            grid-template-columns: 1fr;
+        }
+
+        .bottom-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .dashboard-container {
+            padding: 0.5rem;
+        }
+
+        .status-cards-grid {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-card {
+            padding: 1rem;
+        }
+
+        .status-value {
+            font-size: 1.75rem;
+        }
+
+        .status-label {
+            font-size: 0.7rem;
+        }
+    }
+
+    .chart-canvas {
+        max-height: 220px;
+    }
+
+    .efficiency-chart {
+        max-height: 180px;
+    }
+
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: var(--kutip-secondary);
+    }
+
+    /* Select2 custom styling */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
+            padding-left: 8px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: var(--kutip-primary);
+        box-shadow: 0 0 0 2px rgba(17, 162, 136, 0.1);
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-tachometer-alt me-2"></i>Kutip Dashboard</h1>
+                <p>Waste Management Analytics & Control Center</p>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-light text-dark">
+                    <i class="fas fa-calendar me-1"></i>
+                    @DateTime.Now.ToString("MMM dd, yyyy")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Filters -->
+    <div class="filter-section">
+        <form method="get" class="row g-3 align-items-end" id="dateFilterForm">
+            <input type="hidden" name="period" value="custom" />
+            <input type="hidden" name="searchTruck" value="@Model.SearchTruck" />
+            <input type="hidden" name="searchDriver" value="@Model.SearchDriver" />
+            <div class="col-md-3">
+                <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i>Start Date</label>
+                <input type="date" name="startDate" class="form-control" value="@(Model.FilterStartDate == DateTime.MinValue ? DateTime.Now.ToString("yyyy-MM-dd") : Model.FilterStartDate.ToString("yyyy-MM-dd"))" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold"><i class="fas fa-calendar-alt me-1"></i>End Date</label>
+                <input type="date" name="endDate" class="form-control" value="@(Model.FilterEndDate == DateTime.MinValue ? DateTime.Now.ToString("yyyy-MM-dd") : Model.FilterEndDate.ToString("yyyy-MM-dd"))" />
+            </div>
+            <div class="col-md-6">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-1"></i>Apply Date Filter
+                </button>
+                <a href="@Url.Action("DownloadReport", new { format = "csv", period = Model.SelectedPeriod, startDate = Model.FilterStartDate, endDate = Model.FilterEndDate, searchTruck = Model.SearchTruck, searchDriver = Model.SearchDriver })"
+                   class="btn btn-download-csv">
+                    <i class="fas fa-download me-1"></i>Export CSV
+                </a>
+                <button type="button" class="btn btn-download-csv" onclick="downloadDashboardPNG()">
+                    <i class="fas fa-image me-1"></i>PNG
+                </button>
+            </div>
+        </form>
+    </div>
+
+
+
+    <!-- Key Metrics -->
+    <div class="status-cards-grid">
+        <div class="status-card success">
+            <div class="card-text-content">
+                <div class="status-value">@Model.BinsCollected</div>
+                <div class="status-label">Bins Collected</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-check-circle metric-icon"></i>
+            </div>
+        </div>
+        <div class="status-card danger">
+            <div class="card-text-content">
+                <div class="status-value">@Model.BinsMissed</div>
+                <div class="status-label">Bins Missed</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-times-circle metric-icon"></i>
+            </div>
+        </div>
+        <div class="status-card info">
+            <div class="card-text-content">
+                <div class="status-value">@Model.TotalBinsScheduled</div>
+                <div class="status-label">Total Scheduled</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-calendar-check metric-icon"></i>
+            </div>
+        </div>
+        <div class="status-card warning">
+            <div class="card-text-content">
+                <div class="status-value">@Model.CollectionEfficiency%</div>
+                <div class="status-label">Efficiency Rate</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-chart-line metric-icon"></i>
+            </div>
+        </div>
+        <div class="status-card primary">
+            <div class="card-text-content">
+                <div class="status-value">@Model.TodaySchedules</div>
+                <div class="status-label">Today's Tasks</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-tasks metric-icon"></i>
+            </div>
+        </div>
+        <div class="status-card info">
+            <div class="card-text-content">
+                <div class="status-value">@Model.TotalTrucks</div>
+                <div class="status-label">Total Trucks</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-truck metric-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-chart-line me-2"></i>Collection Trends</h3>
+                <button class="download-btn" onclick="downloadChart('collectionTrendChart', 'collection-trends')">
+                    <i class="fas fa-download me-1"></i>PNG
+                </button>
+            </div>
+            <canvas id="collectionTrendChart" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-chart-pie me-2"></i>Collection Status</h3>
+                <button class="download-btn" onclick="downloadChart('collectionStatusChart', 'collection-status')">
+                    <i class="fas fa-download me-1"></i>PNG
+                </button>
+            </div>
+            <canvas id="collectionStatusChart" class="chart-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Two column charts section -->
+    <div class="charts-section two-column-charts">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-chart-bar me-2"></i>Efficiency Trends</h3>
+                <button class="download-btn" onclick="downloadChart('efficiencyChart', 'efficiency-trends')">
+                    <i class="fas fa-download me-1"></i>PNG
+                </button>
+            </div>
+            <canvas id="efficiencyChart" class="efficiency-chart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-exclamation-triangle me-2"></i>Missed Bins Trend</h3>
+                <button class="download-btn" onclick="downloadChart('missedBinsChart', 'missed-bins-trends')">
+                    <i class="fas fa-download me-1"></i>PNG
+                </button>
+            </div>
+            <canvas id="missedBinsChart" class="chart-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Truck and Driver Performance Section -->
+    <div class="charts-section two-column-charts">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-truck me-2"></i>Active Truck Schedules</h3>
+                @if (!string.IsNullOrEmpty(Model.SearchTruck))
+                {
+                    <small class="text-muted">Filtered: "@Model.SearchTruck"</small>
+                }
+            </div>
+
+            <!-- Truck Filter Form -->
+            <form method="get" class="row g-2 align-items-end mb-3" id="truckFilterForm">
+                <input type="hidden" name="period" value="custom" />
+                <input type="hidden" name="startDate" value="@(Model.FilterStartDate == DateTime.MinValue ? DateTime.Now.ToString("yyyy-MM-dd") : Model.FilterStartDate.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="endDate" value="@(Model.FilterEndDate == DateTime.MinValue ? DateTime.Now.ToString("yyyy-MM-dd") : Model.FilterEndDate.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="searchDriver" value="@Model.SearchDriver" />
+                <div class="col-8">
+                    <select name="searchTruck" class="form-select searchable-select" id="truckSelect">
+                        <option value="">All Trucks</option>
+                        @foreach (var truck in Model.TruckList)
+                        {
+                            <option value="@truck.PlateNumber" selected="@(Model.SearchTruck == truck.PlateNumber)">
+                                @truck.PlateNumber
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-4">
+                    <button type="submit" class="btn btn-primary btn-sm me-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearTruckFilter()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="truck-schedule-list">
+                @if (Model.TruckMovementSummary.Any())
+                {
+                    @foreach (var truck in Model.TruckMovementSummary.Take(6))
+                    {
+                        <div class="truck-schedule-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-truck me-2"></i>@truck.PlateNumber</h6>
+                                    <small class="text-muted">Last Active: @truck.LastActivity.ToString("MMM dd, yyyy")</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge @(truck.CompletionRate >= 80 ? "badge-success" : truck.CompletionRate >= 60 ? "badge-warning" : "badge-danger")">
+                                        @truck.CompletionRate.ToString("F0")% Complete
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row text-center">
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value">@truck.TotalSchedules</div>
+                                        <div class="stat-mini-label">Schedules</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value text-success">@truck.TotalBinsCollected</div>
+                                        <div class="stat-mini-label">Collected</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value text-info">@truck.UniqueLocations</div>
+                                        <div class="stat-mini-label">Locations</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value text-primary">@truck.ActiveDays</div>
+                                        <div class="stat-mini-label">Days</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="efficiency-bar mt-2">
+                                <div class="efficiency-fill" style="width: @truck.CollectionEfficiency%"></div>
+                            </div>
+                            <small class="text-muted">Efficiency: @truck.CollectionEfficiency.ToString("F1")%</small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-truck fa-2x mb-2"></i>
+                        <p>No truck data available</p>
+                        @if (!string.IsNullOrEmpty(Model.SearchTruck))
+                        {
+                            <p><small>Try adjusting your search criteria</small></p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Driver Performance List -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-user-hard-hat me-2"></i>Driver Performance</h3>
+                @if (!string.IsNullOrEmpty(Model.SearchDriver))
+                {
+                    <small class="text-muted">Filtered: "@Model.SearchDriver"</small>
+                }
+            </div>
+
+            <!-- Driver Filter Form -->
+            <form method="get" class="row g-2 align-items-end mb-3" id="driverFilterForm">
+                <input type="hidden" name="period" value="custom" />
+                <input type="hidden" name="startDate" value="@(Model.FilterStartDate == DateTime.MinValue ? DateTime.Now.ToString("yyyy-MM-dd") : Model.FilterStartDate.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="endDate" value="@(Model.FilterEndDate == DateTime.MinValue ? DateTime.Now.ToString("yyyy-MM-dd") : Model.FilterEndDate.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="searchTruck" value="@Model.SearchTruck" />
+                <div class="col-8">
+                    <select name="searchDriver" class="form-select searchable-select" id="driverSelect">
+                        <option value="">All Drivers</option>
+                        @foreach (var driver in Model.DriverList)
+                        {
+                            <option value="@driver.Name" selected="@(Model.SearchDriver == driver.Name)">
+                                @driver.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-4">
+                    <button type="submit" class="btn btn-primary btn-sm me-1">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="clearDriverFilter()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="driver-performance-list">
+                @if (Model.DriverPerformanceSummary.Any())
+                {
+                    @foreach (var driver in Model.DriverPerformanceSummary.Take(6))
+                    {
+                        <div class="driver-performance-item">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-user me-2"></i>@driver.DriverName</h6>
+                                    <small class="text-muted">Last Active: @driver.LastActivity.ToString("MMM dd, yyyy")</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge @(driver.CompletionRate >= 80 ? "badge-success" : driver.CompletionRate >= 60 ? "badge-warning" : "badge-danger")">
+                                        @driver.CompletionRate.ToString("F0")% Complete
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row text-center">
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value">@driver.TotalSchedules</div>
+                                        <div class="stat-mini-label">Schedules</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value text-success">@driver.TotalBinsCollected</div>
+                                        <div class="stat-mini-label">Collected</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value text-info">@driver.UniqueTrucks</div>
+                                        <div class="stat-mini-label">Trucks</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="stat-mini">
+                                        <div class="stat-mini-value text-primary">@driver.ActiveDays</div>
+                                        <div class="stat-mini-label">Days</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="efficiency-bar mt-2">
+                                <div class="efficiency-fill" style="width: @driver.CollectionEfficiency%"></div>
+                            </div>
+                            <small class="text-muted">
+                                Efficiency: @driver.CollectionEfficiency.ToString("F1")% |
+                                Avg Time: @driver.AverageCollectionTime.ToString("F0") min
+                            </small>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-user-hard-hat fa-2x mb-2"></i>
+                        <p>No driver data available</p>
+                        @if (!string.IsNullOrEmpty(Model.SearchDriver))
+                        {
+                            <p><small>Try adjusting your search criteria</small></p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="bottom-section">
+        <div class="activity-section">
+            <h3 class="chart-title"><i class="fas fa-clock me-2"></i>Recent Activity</h3>
+            <div class="activity-list">
+                @if (Model.RecentSchedules.Any())
+                {
+                    @foreach (var schedule in Model.RecentSchedules)
+                    {
+                        string statusClass, statusText, badgeClass;
+                        if (schedule.PickedUpBins == schedule.TotalBins && schedule.TotalBins > 0)
+                        {
+                            statusClass = "completed";
+                            statusText = "Completed";
+                            badgeClass = "badge-success";
+                        }
+                        else if (schedule.PickedUpBins > 0 && schedule.PickedUpBins < schedule.TotalBins)
+                        {
+                            statusClass = "partial";
+                            statusText = "Partial";
+                            badgeClass = "badge-warning";
+                        }
+                        else if (schedule.PickedUpBins < schedule.TotalBins && schedule.s_Date.Date <= DateTime.Today)
+                        {
+                            statusClass = "missed";
+                            statusText = "Missed";
+                            badgeClass = "badge-danger";
+                        }
+                        else
+                        {
+                            statusClass = "pending";
+                            statusText = "Pending";
+                            badgeClass = "badge-secondary";
+                        }
+
+                        <div class="activity-item @statusClass">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold">@(schedule.Bin?.Customer?.c_Name ?? "N/A")</div>
+                                    <div class="text-muted small">@schedule.l_Address1, @schedule.l_Address2</div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-calendar me-1"></i>@schedule.s_Date.ToString("MMM dd")
+                                        <span class="ms-2">
+                                            <i class="fas fa-trash me-1"></i>@schedule.PickedUpBins/@schedule.TotalBins bins
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="status-badge @badgeClass">@statusText</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>No recent activity</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <h3 class="chart-title mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h3>
+            <a asp-controller="Customer" asp-action="Create" class="action-btn btn-success">
+                <i class="fas fa-user-plus me-2"></i>Add Customer
+            </a>
+            <a asp-controller="Schedule" asp-action="Create" class="action-btn btn-warning">
+                <i class="fas fa-calendar-plus me-2"></i>Create Schedule
+            </a>
+            <a asp-controller="Operator" asp-action="CreateUser" class="action-btn btn-primary">
+                <i class="fas fa-user-cog me-2"></i>Add User
+            </a>
+            <div class="system-stats">
+                <div class="stat-item">
+                    <div class="stat-value">@Model.TotalBins</div>
+                    <div class="stat-label">Total Bins</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">@Model.TotalLocations</div>
+                    <div class="stat-label">Locations</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success mt-3" role="alert">
-        @TempData["SuccessMessage"]
-    </div>
-}
+<script>
+    // Real chart data from backend
+    const trendData = @Html.Raw(JsonSerializer.Serialize(Model.CollectionTrendData));
+    const statusData = @Html.Raw(JsonSerializer.Serialize(Model.CollectionStatusData));
+    const efficiencyData = @Html.Raw(JsonSerializer.Serialize(Model.EfficiencyTrendData));
+    const missedBinsData = @Html.Raw(JsonSerializer.Serialize(Model.MissedBinsTrendData));
+
+    console.log("TREND DATA:", trendData);
+    console.log("STATUS DATA:", statusData);
+    console.log("EFFICIENCY DATA:", efficiencyData);
+    console.log("MISSED BINS DATA:", missedBinsData);
+
+    // Chart Options
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: { size: 12 }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { font: { size: 11 } },
+                grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            x: {
+                ticks: { font: { size: 11 } },
+                grid: { display: false }
+            }
+        }
+    };
+
+    // Line Chart: Collection Trend
+    if (trendData && trendData.length > 0) {
+        const ctx = document.getElementById("collectionTrendChart").getContext("2d");
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: trendData.map(d => d.Label),
+                datasets: [{
+                    label: 'Bins Collected',
+                    data: trendData.map(d => d.Value),
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#059669',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                ...chartOptions,
+                plugins: { ...chartOptions.plugins, legend: { display: false } }
+            }
+        });
+    }
+
+    // Doughnut Chart: Collection Status
+    if (statusData && statusData.length > 0) {
+        const ctx = document.getElementById("collectionStatusChart").getContext("2d");
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: statusData.map(d => d.Label),
+                datasets: [{
+                    data: statusData.map(d => d.Value),
+                    backgroundColor: statusData.map(d => d.Color),
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    cutout: '60%',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Bar Chart: Efficiency
+    if (efficiencyData && efficiencyData.length > 0) {
+        const ctx = document.getElementById("efficiencyChart").getContext("2d");
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: efficiencyData.map(d => d.Label),
+                datasets: [{
+                    label: 'Efficiency %',
+                    data: efficiencyData.map(d => d.Value),
+                    backgroundColor: '#2563eb',
+                    borderColor: '#1d4ed8',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    hoverBackgroundColor: '#1d4ed8'
+                }]
+            },
+            options: {
+                ...chartOptions,
+                plugins: { ...chartOptions.plugins, legend: { display: false } },
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        max: 100,
+                        ticks: {
+                            ...chartOptions.scales.y.ticks,
+                            callback: value => value + '%'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Bar Chart: Missed Bins Trend
+    if (missedBinsData && missedBinsData.length > 0) {
+        const ctx = document.getElementById("missedBinsChart").getContext("2d");
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: missedBinsData.map(d => d.Label),
+                datasets: [{
+                    label: 'Bins Missed',
+                    data: missedBinsData.map(d => d.Value),
+                    backgroundColor: '#dc2626',
+                    borderColor: '#b91c1c',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    hoverBackgroundColor: '#b91c1c'
+                }]
+            },
+            options: {
+                ...chartOptions,
+                plugins: { ...chartOptions.plugins, legend: { display: false } }
+            }
+        });
+    }
+
+    // PNG Download for Individual Chart
+    function downloadChart(chartId, filename) {
+        const canvas = document.getElementById(chartId);
+        const url = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${filename}-${new Date().toISOString().split("T")[0]}.png`;
+        link.click();
+    }
+
+    // Download entire dashboard
+    function downloadDashboardPNG() {
+        const dashboard = document.querySelector(".dashboard-container");
+        html2canvas(dashboard, {
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#f1f5f9',
+            width: dashboard.scrollWidth,
+            height: dashboard.scrollHeight
+        }).then(canvas => {
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'kutip-dashboard-' + new Date().toISOString().split('T')[0] + '.png';
+            link.href = url;
+            link.click();
+        }).catch(error => {
+            console.error('Dashboard PNG error:', error);
+            alert('Failed to download dashboard image.');
+        });
+    }
+
+    // Auto-refresh every 5 minutes
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            location.reload();
+        }
+    }, 300000);
+
+    // Initialize Select2 and event handlers
+    $(document).ready(function() {
+        // Initialize Select2 for searchable dropdowns
+        $('.searchable-select').select2({
+            placeholder: function() {
+                return $(this).data('placeholder');
+            },
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Set default dates to today if not already set
+        const today = new Date().toISOString().split('T')[0];
+        const startInput = document.querySelector('[name="startDate"]');
+        const endInput = document.querySelector('[name="endDate"]');
+
+        if (!startInput.value) {
+            startInput.value = today;
+        }
+        if (!endInput.value) {
+            endInput.value = today;
+        }
+
+        // Handle truck filter change with AJAX - prevent form submission
+        $('#truckSelect').on('select2:select select2:clear', function(e) {
+            e.preventDefault();
+            updateTruckData();
+        });
+
+        // Handle driver filter change with AJAX - prevent form submission
+        $('#driverSelect').on('select2:select select2:clear', function(e) {
+            e.preventDefault();
+            updateDriverData();
+        });
+
+        // Prevent form submission for truck filter
+        $('#truckFilterForm').on('submit', function(e) {
+            e.preventDefault();
+            updateTruckData();
+            return false;
+        });
+
+        // Prevent form submission for driver filter
+        $('#driverFilterForm').on('submit', function(e) {
+            e.preventDefault();
+            updateDriverData();
+            return false;
+        });
+
+        // Prevent button clicks from submitting forms
+        $('#truckFilterForm button[type="submit"]').on('click', function(e) {
+            e.preventDefault();
+            updateTruckData();
+            return false;
+        });
+
+        $('#driverFilterForm button[type="submit"]').on('click', function(e) {
+            e.preventDefault();
+            updateDriverData();
+            return false;
+        });
+    });
+
+    // Function to update truck data via AJAX
+    function updateTruckData() {
+        const searchTruck = $('#truckSelect').val() || '';
+        const startDate = $('[name="startDate"]').first().val();
+        const endDate = $('[name="endDate"]').first().val();
+        const searchDriver = $('#driverSelect').val() || '';
+
+        console.log('Updating truck data with:', { searchTruck, startDate, endDate, searchDriver });
+
+        // Show loading indicator
+        $('.truck-schedule-list').html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading...</p></div>');
+
+        $.ajax({
+            url: '@Url.Action("GetTruckData", "Operator")',
+            type: 'GET',
+            data: {
+                searchTruck: searchTruck,
+                startDate: startDate,
+                endDate: endDate,
+                searchDriver: searchDriver
+            },
+            success: function(data) {
+                $('.truck-schedule-list').html(data);
+
+                // Update the filtered indicator
+                const chartHeader = $('.chart-container').first().find('.chart-header');
+                let filterIndicator = chartHeader.find('small.text-muted');
+
+                if (searchTruck) {
+                    if (filterIndicator.length) {
+                        filterIndicator.text('Filtered: "' + searchTruck + '"');
+                    } else {
+                        chartHeader.append('<small class="text-muted">Filtered: "' + searchTruck + '"</small>');
+                    }
+                } else {
+                    filterIndicator.remove();
+                }
+
+                console.log('Truck data updated successfully');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating truck data:', error);
+                $('.truck-schedule-list').html('<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>Error loading truck data</p></div>');
+            }
+        });
+    }
+
+    // Function to update driver data via AJAX
+    function updateDriverData() {
+        const searchDriver = $('#driverSelect').val() || '';
+        const startDate = $('[name="startDate"]').first().val();
+        const endDate = $('[name="endDate"]').first().val();
+        const searchTruck = $('#truckSelect').val() || '';
+
+        console.log('Updating driver data with:', { searchDriver, startDate, endDate, searchTruck });
+
+        // Show loading indicator
+        $('.driver-performance-list').html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Loading...</p></div>');
+
+        $.ajax({
+            url: '@Url.Action("GetDriverData", "Operator")',
+            type: 'GET',
+            data: {
+                searchDriver: searchDriver,
+                startDate: startDate,
+                endDate: endDate,
+                searchTruck: searchTruck
+            },
+            success: function(data) {
+                $('.driver-performance-list').html(data);
+
+                // Update the filtered indicator
+                const chartHeader = $('.chart-container').last().find('.chart-header');
+                let filterIndicator = chartHeader.find('small.text-muted');
+
+                if (searchDriver) {
+                    if (filterIndicator.length) {
+                        filterIndicator.text('Filtered: "' + searchDriver + '"');
+                    } else {
+                        chartHeader.append('<small class="text-muted">Filtered: "' + searchDriver + '"</small>');
+                    }
+                } else {
+                    filterIndicator.remove();
+                }
+
+                console.log('Driver data updated successfully');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating driver data:', error);
+                $('.driver-performance-list').html('<div class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>Error loading driver data</p></div>');
+            }
+        });
+    }
+
+    // Clear truck filter function
+    function clearTruckFilter() {
+        $('#truckSelect').val(null).trigger('change');
+    }
+
+    // Clear driver filter function
+    function clearDriverFilter() {
+        $('#driverSelect').val(null).trigger('change');
+    }
+
+    // Date Range Validation
+    const startInput = document.querySelector('[name="startDate"]');
+    const endInput = document.querySelector('[name="endDate"]');
+    const submitBtn = document.querySelector('#dateFilterForm button[type="submit"]');
+
+    function validateDateRange() {
+        const start = new Date(startInput.value);
+        const end = new Date(endInput.value);
+        if (start > end) {
+            submitBtn.disabled = true;
+            submitBtn.title = "End date must be after or equal to start date.";
+            submitBtn.classList.add("disabled");
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.title = "";
+            submitBtn.classList.remove("disabled");
+        }
+    }
+
+    if (startInput && endInput && submitBtn) {
+        startInput.addEventListener("change", validateDateRange);
+        endInput.addEventListener("change", validateDateRange);
+        document.addEventListener("DOMContentLoaded", validateDateRange);
+    }
+</script>

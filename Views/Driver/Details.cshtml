@@ -1,0 +1,332 @@
+﻿@model Kutip.Models.Schedule
+
+@{
+    ViewData["Title"] = "Schedule Details";
+    var today = DateTime.Today;
+
+    var statusClass = "";
+    var statusText = "";
+    if (Model.PickedUpBins >= Model.TotalBins && Model.TotalBins > 0)
+    {
+        statusClass = "completed";
+        statusText = "Completed";
+    }
+    else if (Model.s_Date.Date < today.Date)
+    {
+        statusClass = "past-due";
+        statusText = "Past Due";
+    }
+    else if (Model.s_Date.Date == today.Date)
+    {
+        statusClass = "in-progress";
+        statusText = "In Progress";
+    }
+    else
+    {
+        statusClass = "scheduled";
+        statusText = "Scheduled";
+    }
+}
+
+@section Styles {
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #006d68;
+            --primary-hover: #005550;
+            --secondary-color: #23978f;
+            --light-color: #a6d9ce;
+            --white-color: #ffffff;
+            --dark-color: #2d3748;
+            --danger-color: #e53e3e;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: "Inter", "Segoe UI", sans-serif;
+            background-color: #f8f9fa;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+
+        .container-fluid {
+            padding: 15px;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+        }
+
+            .page-title i {
+                margin-right: 12px;
+                color: var(--primary-color);
+                font-size: 24px;
+            }
+
+        .page-subtitle {
+            color: #718096;
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+
+        .detail-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+            .detail-card h4 {
+                font-size: 18px;
+                margin-bottom: 15px;
+                color: var(--dark-color);
+            }
+
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+            .detail-item i {
+                font-size: 16px;
+                margin-right: 12px;
+                color: var(--primary-color);
+                width: 20px;
+                text-align: center;
+                margin-top: 2px;
+            }
+
+            .detail-item .label {
+                font-weight: 600;
+                color: var(--dark-color);
+                min-width: 100px;
+                margin-right: 10px;
+            }
+
+            .detail-item .value {
+                flex-grow: 1;
+                word-break: break-word;
+            }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            line-height: 1;
+        }
+
+            .status-badge.completed {
+                background-color: #d1fae5;
+                color: #065f46;
+            }
+
+            .status-badge.scheduled {
+                background-color: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-badge.in-progress {
+                background-color: #dbeafe;
+                color: #1e40af;
+            }
+
+            .status-badge.past-due {
+                background-color: #fee2e2;
+                color: #991b1b;
+            }
+
+        .btn-back {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .btn-back i {
+                margin-right: 8px;
+                font-size: 14px;
+            }
+
+            .btn-back:hover {
+                background-color: #5a6268;
+                border-color: #545b62;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                color: white;
+            }
+
+        /* Responsive adjustments */
+        @@media (max-width: 576px) {
+            .page-header {
+                padding: 15px;
+            }
+
+            .page-title {
+                font-size: 20px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+                .page-title i {
+                    margin-bottom: 8px;
+                    margin-right: 0;
+                }
+
+            .detail-card {
+                padding: 15px;
+            }
+
+            .detail-item {
+                flex-direction: column;
+                margin-bottom: 15px;
+            }
+
+                .detail-item .label {
+                    min-width: auto;
+                    margin-bottom: 5px;
+                }
+
+                .detail-item i {
+                    align-self: flex-start;
+                }
+
+            .btn-back {
+                width: 100%;
+                justify-content: center;
+                margin-top: 10px;
+            }
+        }
+
+        /* Small phones (iPhone 5/SE) */
+        @@media (max-width: 320px) {
+            .page-title {
+                font-size: 18px;
+            }
+
+            .detail-card h4 {
+                font-size: 16px;
+            }
+
+            .detail-item {
+                font-size: 13px;
+            }
+
+            .status-badge {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.6rem;
+            }
+        }
+
+        /* Landscape orientation */
+        @@media (orientation: landscape) and (max-height: 500px) {
+            .container-fluid {
+                padding: 10px;
+            }
+
+            .page-header {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .detail-card {
+                padding: 15px;
+            }
+
+            .detail-item {
+                margin-bottom: 8px;
+            }
+        }
+    </style>
+}
+
+<div class="container-fluid p-3">
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-md-8 col-12">
+                <h1 class="page-title">
+                    <i class="fas fa-info-circle"></i> Schedule Details
+                </h1>
+                <p class="page-subtitle">Detailed information about your assigned schedule</p>
+            </div>
+            <div class="col-md-4 col-12 text-md-end mt-md-0 mt-2">
+                <a asp-action="MySchedules" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i>Back to My Schedules
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h4>Schedule Information</h4>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <i class="fas fa-calendar-day"></i>
+                    <span class="label">Date:</span>
+                    <span class="value">@Model.s_Date.ToString("dd/MM/yyyy") (@Model.s_Day)</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-clock"></i>
+                    <span class="label">Time Slot:</span>
+                    <span class="value">@Model.s_PickupTime.ToString("hh\\:mm") - @Model.s_PickupEnd.ToString("hh\\:mm")</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span class="label">Location:</span>
+                    <span class="value">
+                        @(Model.Location?.l_Address2 ?? "N/A")<br />
+                        @(Model.Location?.l_Postcode ?? "N/A") @(Model.Location?.l_District ?? "N/A"), @(Model.Location?.l_State ?? "N/A")
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="label">Status:</span>
+                    <span class="value"><span class="status-badge @statusClass">@statusText</span></span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-truck"></i>
+                    <span class="label">Assigned Truck:</span>
+                    <span class="value">@(Model.Truck?.t_PlateNo ?? "N/A")</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span class="label">Assigned Driver:</span>
+                    <span class="value">@(Model.AssignedUser?.Name ?? "N/A")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,70 @@
+@model Kutip.ViewModels.EditUserInputModel
+
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-user-edit text-primary"></i> Edit User
+            </h1>
+            <p class="page-subtitle">Update user details and roles</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mx-auto"> @* This class centers the column within its row *@
+        <div class="form-container">
+            <form asp-action="EditUser" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="form-group mb-3">
+                    <label asp-for="Name" class="control-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="control-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="NewPassword" class="control-label"></label>
+                    <input asp-for="NewPassword" class="form-control" placeholder="Leave blank to keep current password" />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="ConfirmNewPassword" class="control-label"></label>
+                    <input asp-for="ConfirmNewPassword" class="form-control" placeholder="Confirm new password" />
+                    <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="RoleName" class="control-label"></label>
+                    <select asp-for="RoleName" class="form-control" asp-items="ViewBag.Roles">
+                        <option value="">-- Select User Role --</option>
+                    </select>
+                    <span asp-validation-for="RoleName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                    <a asp-action="UserList" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

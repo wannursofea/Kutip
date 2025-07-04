@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Kutip.Models
 {
@@ -32,8 +34,14 @@ namespace Kutip.Models
         [Display(Name = "Collection Area")]
         public string l_ColArea { get; set; } = "";
 
-        // Navigation property to Bins
+        [Display(Name = "Latitude")]
+        [Column(TypeName = "decimal(18, 10)")]
+        public double Latitude { get; set; }
+
+        [Display(Name = "Longitude")]
+        [Column(TypeName = "decimal(18, 10)")]
+        public double Longitude { get; set; }
+
         public virtual ICollection<Bin> Bins { get; set; } = new List<Bin>();
     }
 }
-

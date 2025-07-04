@@ -1,4 +1,4 @@
-﻿using Kutip.Models;
+using Kutip.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Kutip.ViewModels

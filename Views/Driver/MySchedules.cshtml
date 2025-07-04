@@ -1,0 +1,701 @@
+@model List<Kutip.Models.Schedule>
+@{
+    ViewData["Title"] = "My Schedules";
+    var today = DateTime.Today;
+
+    var groupedSchedules = Model
+        .GroupBy(s => new
+        {
+            s.s_Date,
+            s.s_PickupTime,
+            s.s_PickupEnd,
+            LocationAddress = s.Location?.l_Address2 ?? ""
+        })
+        .Select(g => new
+        {
+            Key = g.Key,
+            FirstSchedule = g.First(),
+            TotalBins = g.Count(),
+            PickedUpBins = g.Sum(s => s.PickedUpBins),
+            Schedules = g.ToList()
+        })
+        .OrderByDescending(g => g.Key.s_Date)
+        .ToList();
+
+    var todaysSchedules = groupedSchedules.Where(s => s.Key.s_Date.Date == today).ToList();
+    var pendingCount = todaysSchedules.Count(s => s.PickedUpBins < s.TotalBins);
+    var totalPickedUp = todaysSchedules.Sum(s => s.PickedUpBins);
+    var totalBinsToday = todaysSchedules.Sum(s => s.TotalBins);
+    var pickupPercent = totalBinsToday > 0 ? (int)((double)totalPickedUp / totalBinsToday * 100) : 0;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        body {
+            overflow-x: hidden;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+        }
+
+            .page-title i {
+                margin-right: 0.75rem;
+                color: #667eea;
+            }
+
+        .page-subtitle {
+            color: #718096;
+            margin-bottom: 0;
+            font-size: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            margin-bottom: 1rem;
+        }
+
+            .stats-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .stats-card .card-title {
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: #718096;
+                margin-bottom: 0.5rem;
+            }
+
+            .stats-card .card-value {
+                font-size: 1.75rem;
+                font-weight: 700;
+                color: #2d3748;
+                line-height: 1.2;
+            }
+
+            .stats-card .card-icon {
+                font-size: 2.5rem;
+                color: #e2e8f0;
+                position: absolute;
+                right: 1.25rem;
+                top: 1.25rem;
+            }
+
+            .stats-card.primary .card-icon {
+                color: rgba(102, 126, 234, 0.2);
+            }
+
+            .stats-card.success .card-icon {
+                color: rgba(72, 187, 120, 0.2);
+            }
+
+            .stats-card.info .card-icon {
+                color: rgba(66, 153, 225, 0.2);
+            }
+
+            .stats-card.warning .card-icon {
+                color: rgba(237, 137, 54, 0.2);
+            }
+
+        /* Table Container */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-header {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            border-bottom: 1px solid #edf2f7;
+            background: linear-gradient(to right, #e0f7fa, #b2ebf2);
+            color: #2d3748;
+        }
+
+            .table-header h5 {
+                margin-bottom: 0;
+                font-weight: 600;
+                color: inherit;
+                font-size: 1.25rem;
+            }
+
+            .table-header .input-group {
+                width: 100%;
+            }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .data-table thead th {
+                background: linear-gradient(to right, #e0f7fa, #b2ebf2);
+                color: #2d3748;
+                font-weight: 600;
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid #edf2f7;
+                font-size: 0.875rem;
+                white-space: nowrap;
+            }
+
+            .data-table tbody tr {
+                border-bottom: 1px solid #edf2f7;
+                transition: all 0.2s ease;
+            }
+
+                .data-table tbody tr:last-child {
+                    border-bottom: none;
+                }
+
+                .data-table tbody tr:hover {
+                    background: #f8fafc;
+                }
+
+            .data-table tbody td {
+                padding: 1rem;
+                vertical-align: middle;
+                color: #4a5568;
+                font-size: 0.875rem;
+            }
+
+                .data-table tbody td i {
+                    color: #667eea;
+                    margin-right: 0.5rem;
+                }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+            .btn-action i {
+                color: white !important;
+            }
+
+            .btn-action.btn-view {
+                background-color: #4299e1;
+            }
+
+            .btn-action.btn-edit {
+                background-color: #ed8936;
+            }
+
+            .btn-action.btn-delete {
+                background-color: #e53e3e;
+            }
+
+            .btn-action:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #718096;
+        }
+
+            .empty-state i {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                color: #cbd5e0;
+            }
+
+            .empty-state h5 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                color: #2d3748;
+            }
+
+            .empty-state p {
+                font-size: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+        /* Filter Card */
+        .filter-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+            .filter-card .card-header {
+                padding: 1rem;
+                font-size: 1.25rem;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                background-color: white;
+                color: #2d3748;
+                border-bottom: 1px solid #edf2f7;
+            }
+
+                .filter-card .card-header i {
+                    margin-right: 0.75rem;
+                    color: #48bb78;
+                }
+
+            .filter-card .card-body {
+                padding: 1.25rem;
+            }
+
+        /* Form Elements */
+        .filter-form-vertical .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .filter-form-vertical .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            display: block;
+            font-size: 0.875rem;
+        }
+
+        .filter-form-vertical .form-control,
+        .filter-form-vertical .form-select {
+            border-radius: 8px;
+            border-color: #e2e8f0;
+            padding: 0.75rem;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+
+        .filter-form-vertical .btn-primary {
+            background-color: #48bb78;
+            border-color: #48bb78;
+            font-weight: 600;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            width: 100%;
+            font-size: 0.875rem;
+        }
+
+            .filter-form-vertical .btn-primary:hover {
+                background-color: #38a169;
+                border-color: #38a169;
+                transform: translateY(-2px);
+            }
+
+        /* IOT Button */
+        .btn-iot {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            border: none;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+            .btn-iot i {
+                margin-right: 0.5rem;
+            }
+
+            .btn-iot:hover {
+                background: linear-gradient(45deg, #0056b3, #004085);
+                transform: translateY(-2px);
+                color: white;
+            }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            line-height: 1;
+        }
+
+            .status-badge.completed {
+                background-color: #d1fae5;
+                color: #065f46;
+            }
+
+            .status-badge.scheduled {
+                background-color: #fef3c7;
+                color: #92400e;
+            }
+
+            .status-badge.in-progress {
+                background-color: #dbeafe;
+                color: #1e40af;
+            }
+
+            .status-badge.past-due {
+                background-color: #fee2e2;
+                color: #991b1b;
+            }
+
+        /* Responsive Table */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile Optimizations */
+        @@media (max-width: 767.98px) {
+            .page-header {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.875rem;
+            }
+
+            .stats-card {
+                padding: 1rem;
+            }
+
+                .stats-card .card-value {
+                    font-size: 1.5rem;
+                }
+
+                .stats-card .card-icon {
+                    font-size: 2rem;
+                    right: 1rem;
+                    top: 1rem;
+                }
+
+            .data-table thead th,
+            .data-table tbody td {
+                padding: 0.75rem;
+                font-size: 0.8125rem;
+            }
+
+            .filter-card .card-header {
+                font-size: 1.1rem;
+                padding: 0.75rem;
+            }
+
+            .btn-iot {
+                padding: 0.5rem 1rem;
+                font-size: 0.8125rem;
+            }
+
+            .action-buttons .btn-action {
+                width: 2rem;
+                height: 2rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Extra Small Devices */
+        @@media (max-width: 575.98px) {
+            .page-title {
+                font-size: 1.25rem;
+            }
+
+            .stats-card .card-value {
+                font-size: 1.25rem;
+            }
+
+            .data-table thead th,
+            .data-table tbody td {
+                padding: 0.5rem;
+            }
+
+            .status-badge {
+                font-size: 0.6875rem;
+                padding: 0.2rem 0.5rem;
+            }
+        }
+    </style>
+}
+
+<div class="container-fluid p-3 p-md-4">
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-12 col-md-8">
+                <h1 class="page-title">
+                    <i class="fas fa-calendar-alt"></i> My Schedules
+                </h1>
+                <p class="page-subtitle">View and manage your assigned pickup schedules</p>
+            </div>
+            <div class="col-12 col-md-4 mt-3 mt-md-0">
+                <div class="d-flex justify-content-md-end">
+                    <a href="@Url.Action("Index", "IoTScanner")" class="btn btn-iot w-100 w-md-auto">
+                        <i class="fas fa-camera"></i> IoT Scanner
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="stats-card primary h-100">
+                <div class="position-relative h-100">
+                    <div class="card-title">Today's Schedules</div>
+                    <div class="card-value">@pendingCount</div>
+                    <i class="fas fa-calendar-day card-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="stats-card success h-100">
+                <div class="position-relative h-100">
+                    <div class="card-title">Pickup Progress</div>
+                    <div class="card-value">@totalPickedUp/@totalBinsToday</div>
+                    <i class="fas fa-box card-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="stats-card info h-100">
+                <div class="position-relative h-100">
+                    <div class="card-title">Completion Rate</div>
+                    <div class="card-value">@pickupPercent%</div>
+                    <i class="fas fa-chart-line card-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3 mb-3">
+            <div class="stats-card warning h-100">
+                <div class="position-relative h-100">
+                    <div class="card-title">Total Schedules</div>
+                    <div class="card-value">@Model.Count()</div>
+                    <i class="fas fa-clipboard-list card-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 mb-3 mb-lg-0">
+            <div class="filter-card h-100">
+                <div class="card-header">
+                    <i class="fas fa-filter"></i> Filter Schedules
+                </div>
+                <div class="card-body">
+                    <form method="get" action="@Url.Action("MySchedules", "Driver")" class="filter-form-vertical">
+                        <div class="form-group mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" value="@ViewBag.SelectedDate" />
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                @{
+                                    var selectedStatus = ViewBag.SelectedStatus as string;
+                                }
+                                <option value="">All</option>
+                                <option value="Completed" selected="@(selectedStatus == "Completed" ? "selected" : null)">Completed</option>
+                                <option value="In Progress" selected="@(selectedStatus == "In Progress" ? "selected" : null)">In Progress</option>
+                                <option value="Past Due" selected="@(selectedStatus == "Past Due" ? "selected" : null)">Past Due</option>
+                                <option value="Scheduled" selected="@(selectedStatus == "Scheduled" ? "selected" : null)">Scheduled</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">
+                            <i class="fas fa-filter me-1"></i> Apply Filters
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                        <h5><i class="fas fa-list me-2"></i> Schedule List</h5>
+                        <div class="mt-2 mt-md-0" style="width: 100%; max-width: 250px;">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search..." id="searchInput" onkeyup="searchSchedules()">
+                                <button class="btn btn-primary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table table" id="schedulesTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar-day me-1"></i> Date</th>
+                                <th><i class="fas fa-clock me-1"></i> Time</th>
+                                <th><i class="fas fa-map-marker-alt me-1"></i> Location</th>
+                                <th class="text-center"><i class="fas fa-info-circle me-1"></i> Status</th>
+                                <th class="text-center"><i class="fas fa-cogs me-1"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (groupedSchedules != null && groupedSchedules.Any())
+                            {
+                                @foreach (var group in groupedSchedules)
+                                {
+                                    var statusClass = "";
+                                    var statusText = "";
+                                    var scheduleDate = group.Key.s_Date;
+                                    var pickedUpBins = group.PickedUpBins;
+                                    var totalBinsItem = group.TotalBins;
+
+                                    if (pickedUpBins >= totalBinsItem && totalBinsItem > 0)
+                                    {
+                                        statusClass = "completed";
+                                        statusText = "Completed";
+                                    }
+                                    else if (scheduleDate.Date < today.Date)
+                                    {
+                                        statusClass = "past-due";
+                                        statusText = "Past Due";
+                                    }
+                                    else if (scheduleDate.Date == today.Date)
+                                    {
+                                        statusClass = "in-progress";
+                                        statusText = "In Progress";
+                                    }
+                                    else
+                                    {
+                                        statusClass = "scheduled";
+                                        statusText = "Scheduled";
+                                    }
+
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">@group.Key.s_Date.ToString("dd/MM/yyyy")</div>
+                                            <div class="text-muted small">@group.FirstSchedule.s_Day</div>
+                                        </td>
+                                        <td>
+                                            <span>@(group.Key.s_PickupTime.ToString("hh\\:mm")) - @(group.Key.s_PickupEnd.ToString("hh\\:mm"))</span>
+                                        </td>
+                                        <td>
+                                            <span class="d-inline-block text-truncate" style="max-width: 150px;">@(group.FirstSchedule.Location?.l_Address2 ?? "Unknown")</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="status-badge @statusClass">@pickedUpBins/@totalBinsItem</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="action-buttons">
+                                                <a asp-action="Details" asp-route-id="@group.FirstSchedule.s_ID" class="btn-action btn-view" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            <i class="fas fa-calendar-times"></i>
+                                            <h5>No Schedules Found</h5>
+                                            <p>No schedules match your current filters.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function searchSchedules() {
+            const input = document.getElementById("searchInput");
+            const table = document.getElementById("schedulesTable");
+
+            if (!input || !table) return;
+
+            const filter = input.value.toLowerCase();
+            const rows = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const cells = row.getElementsByTagName("td");
+                let found = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                    const cellText = cells[j].textContent || cells[j].innerText;
+                    if (cellText.toLowerCase().includes(filter)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                row.style.display = found ? "" : "none";
+            }
+        }
+
+        // Initialize date picker with today's date if empty
+        document.addEventListener("DOMContentLoaded", function() {
+            const dateInput = document.getElementById("date");
+            if (dateInput && !dateInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+        });
+    </script>
+}

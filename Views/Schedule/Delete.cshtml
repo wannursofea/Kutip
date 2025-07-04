@@ -1,13 +1,42 @@
-ï»¿@model Kutip.Models.Schedule
+@model Kutip.Models.Schedule
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Schedule";
 }
 
-@* Add Font Awesome for icons *@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
+    .field-validation-error {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .input-validation-error {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.1) !important;
+    }
+
+    .validation-summary-errors {
+        color: #dc3545;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid #dc3545;
+        border-radius: 0.375rem;
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+
+        .validation-summary-errors ul {
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+
+    .text-danger {
+        color: #dc3545;
+    }
+
     .schedule-container {
         max-width: 800px;
         margin: 0 auto;
@@ -44,71 +73,49 @@
         align-items: center;
     }
 
-    .warning-icon {
-        color: #dc2626;
-        font-size: 1.5rem;
-        margin-right: 0.75rem;
-    }
-
-    .page-title {
-        font-size: 1.875rem;
-        font-weight: bold;
-        color: #dc2626;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-    }
-
-    .page-subtitle {
-        color: #7f1d1d;
-        margin-bottom: 0;
-        font-weight: 500;
-    }
-
     .section-title {
         font-size: 1.25rem;
         font-weight: 600;
         color: #dc2626;
         margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
     }
 
     .section-subtitle {
-        color: #7f1d1d;
+        color: #991b1b;
         font-size: 0.875rem;
         margin-bottom: 0;
     }
 
-    .detail-row {
+    .info-row {
         display: flex;
+        justify-content: space-between;
         align-items: center;
         padding: 0.75rem 0;
         border-bottom: 1px solid #f3f4f6;
     }
 
-        .detail-row:last-child {
+        .info-row:last-child {
             border-bottom: none;
         }
 
-    .detail-icon {
-        color: #6b7280;
-        font-size: 0.875rem;
-        width: 20px;
-        text-align: center;
-        margin-right: 0.75rem;
-    }
-
-    .detail-label {
+    .info-label {
         font-weight: 500;
         color: #374151;
-        min-width: 140px;
-        margin-right: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    .detail-value {
-        color: #1f2937;
-        flex: 1;
+        .info-label i {
+            color: #6b7280;
+            font-size: 0.875rem;
+            width: 16px;
+            text-align: center;
+        }
+
+    .info-value {
+        color: #111827;
+        font-weight: 500;
     }
 
     .btn-delete {
@@ -118,23 +125,33 @@
         padding: 0.75rem 1.5rem;
         border-radius: 6px;
         font-weight: 500;
+        border: none;
+        cursor: pointer;
     }
 
         .btn-delete:hover {
             background-color: #b91c1c;
             border-color: #b91c1c;
-            color: white;
         }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        border-color: #6b7280;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+    }
 
     .btn-outline {
         background-color: transparent;
         border: 1px solid #d1d5db;
         color: #374151;
-        padding: 0.75rem 1.5rem;
+        padding: 0.5rem 1rem;
         border-radius: 6px;
         text-decoration: none;
         display: inline-block;
-        font-weight: 500;
     }
 
         .btn-outline:hover {
@@ -143,117 +160,443 @@
             color: #374151;
         }
 
-    .alert-warning {
-        background-color: #fef3c7;
-        border: 1px solid #f59e0b;
-        color: #92400e;
-        padding: 1rem;
+    .danger-badge {
+        background-color: #fee2e2;
+        color: #991b1b;
+        padding: 0.75rem;
         border-radius: 6px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        border: 1px solid #fecaca;
     }
 
-        .alert-warning i {
-            margin-right: 0.75rem;
-            font-size: 1.25rem;
+    .warning-badge {
+        background-color: #fff3cd;
+        color: #856404;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        border: 1px solid #ffeaa7;
+    }
+
+    .schedule-details {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+
+    .status-indicator {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+        .status-indicator.completed {
+            background-color: #d1fae5;
+            color: #065f46;
         }
+
+        .status-indicator.pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-indicator.past-due {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-indicator.in-progress {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+    .bin-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+    }
+
+    .bin-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        transition: all 0.2s ease;
+    }
+
+        .bin-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .bin-card.completed {
+            border-left: 4px solid #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .bin-card.pending {
+            border-left: 4px solid #f59e0b;
+            background-color: #fffbeb;
+        }
+
+    .bin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .bin-plate {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #111827;
+    }
+
+    .bin-status {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+        .bin-status.completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .bin-status.pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+    .bin-location {
+        color: #6b7280;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
 </style>
 
 <div class="schedule-container">
-    <h1 class="page-title">
-        <i class="fas fa-exclamation-triangle warning-icon"></i>
-        Delete Schedule
-    </h1>
-    <p class="page-subtitle">This action cannot be undone</p>
 
-    <div class="alert-warning">
-        <i class="fas fa-exclamation-circle"></i>
-        <div>
-            <strong>Warning:</strong> You are about to permanently delete this schedule. This action cannot be reversed.
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
+    }
 
     <div class="schedule-card">
         <div class="card-header">
             <h3 class="section-title">
-                <i class="fas fa-calendar-times" style="margin-right: 0.5rem; font-size: 1rem;"></i>
-                Schedule Information
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Delete Schedule Group
             </h3>
-            <p class="section-subtitle">Review the details before confirming deletion</p>
+            <p class="section-subtitle">Confirm deletion of this pickup session and all related schedules</p>
         </div>
 
         <div class="card-body">
-            <div class="detail-row">
-                <i class="fas fa-calendar-alt detail-icon"></i>
-                <div class="detail-label">Pickup Date:</div>
-                <div class="detail-value">@Html.DisplayFor(model => model.s_Date)</div>
+            <div class="danger-badge">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Warning:</strong> This action cannot be undone. Deleting this schedule will remove ALL related schedules for the same pickup session (same assigned user, date, time, and location).
             </div>
 
-            <div class="detail-row">
-                <i class="fas fa-clock detail-icon"></i>
-                <div class="detail-label">Start Time:</div>
-                <div class="detail-value">@Html.DisplayFor(model => model.s_PickupTime)</div>
+            <div class="warning-badge">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Impact:</strong> All schedules with the same assigned user, date, time, location address, and truck will be permanently deleted from the system.
             </div>
 
-            <div class="detail-row">
-                <i class="fas fa-clock detail-icon"></i>
-                <div class="detail-label">End Time:</div>
-                <div class="detail-value">@Html.DisplayFor(model => model.s_PickupEnd)</div>
-            </div>
+            <div class="schedule-details">
+                <h5 class="mb-3">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Schedule Information
+                </h5>
 
-            <div class="detail-row">
-                <i class="fas fa-map-marker-alt detail-icon"></i>
-                <div class="detail-label">Location:</div>
-                <div class="detail-value">
-                    @if (Model.Location != null)
-                    {
-                        @Html.DisplayFor(model => model.Location.l_Address1)
-                    }
-                    else
-                    {
-                        <span class="text-muted">No location specified</span>
-                    }
+                <div class="detail-grid">
+                    <div class="info-row">
+                        <span class="info-label">
+                            <i class="fas fa-user"></i>
+                            Assigned User
+                        </span>
+                        <span class="info-value">
+                            @if (Model.AssignedUser != null)
+                            {
+                                @Model.AssignedUser.Name
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not assigned</span>
+                            }
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <i class="fas fa-truck"></i>
+                            Assigned Truck
+                        </span>
+                        <span class="info-value">
+                            @if (Model.Truck != null)
+                            {
+                                @Model.Truck.t_PlateNo
+                            }
+                            else
+                            {
+                                <span class="text-muted">No truck</span>
+                            }
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <i class="fas fa-calendar"></i>
+                            Schedule Date
+                        </span>
+                        <span class="info-value">@Model.s_Date.ToString("dd/MM/yyyy")</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <i class="fas fa-clock"></i>
+                            Start Time
+                        </span>
+                        <span class="info-value">@Model.s_PickupTime.ToString("hh\\:mm")</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <i class="fas fa-clock"></i>
+                            End Time
+                        </span>
+                        <span class="info-value">@Model.s_PickupEnd.ToString("hh\\:mm")</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Location
+                        </span>
+                        <span class="info-value">
+                            @if (Model.Location != null)
+                            {
+                                @Model.Location.l_Address2
+                            }
+                            else
+                            {
+                                <span class="text-muted">No location</span>
+                            }
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">
+                            <i class="fas fa-box"></i>
+                            Current Bin
+                        </span>
+                        <span class="info-value">
+                            @if (Model.Bin != null)
+                            {
+                                @Model.Bin.b_PlateNo
+                            }
+                            else
+                            {
+                                <span class="text-muted">No bin assigned</span>
+                            }
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <div class="detail-row">
-                <i class="fas fa-box detail-icon"></i>
-                <div class="detail-label">Picked Up Bins:</div>
-                <div class="detail-value">@Html.DisplayFor(model => model.PickedUpBins)</div>
+            <div class="schedule-details">
+                <h5 class="mb-3">
+                    <i class="fas fa-truck me-2"></i>
+                    All Bins That Will Be Deleted
+                </h5>
+
+                @{
+                    var relatedSchedules = ViewBag.RelatedSchedules as List<Kutip.Models.Schedule>;
+                    var totalBins = relatedSchedules?.Count ?? 1;
+                    var totalPickedUpBins = relatedSchedules?.Sum(s => s.PickedUpBins) ?? Model.PickedUpBins;
+                }
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold text-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            @totalBins schedule(s) will be permanently deleted
+                        </span>
+                        <span class="text-muted">@totalPickedUpBins / @totalBins bins picked up</span>
+                    </div>
+                </div>
+
+                @if (relatedSchedules != null && relatedSchedules.Any())
+                {
+                    <div class="bin-grid">
+                        @foreach (var schedule in relatedSchedules)
+                        {
+                            var binCompleted = schedule.PickedUpBins >= schedule.TotalBins;
+                            var binCardClass = binCompleted ? "completed" : "pending";
+                            var binStatusClass = binCompleted ? "completed" : "pending";
+                            var binStatusText = binCompleted ? "Completed" : "Pending";
+
+                            <div class="bin-card @binCardClass" style="border-left: 4px solid #dc2626; background-color: #fef2f2;">
+                                <div class="bin-header">
+                                    <div class="bin-plate">
+                                        <i class="fas fa-box me-2"></i> 
+                                        @(schedule.Bin?.b_PlateNo ?? "Unknown")
+                                    </div>
+                                    <span class="bin-status @binStatusClass">@binStatusText</span>
+                                </div>
+
+                                @if (schedule.Bin?.Location != null)
+                                {
+                                    <div class="bin-location">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        @schedule.Bin.Location.l_Address1, @schedule.Bin.Location.l_Address2
+                                    </div>
+                                }
+
+                                <div class="bin-progress">
+                                    <small class="text-muted">
+                                        Progress: @schedule.PickedUpBins / @schedule.TotalBins
+                                        @if (schedule.TotalBins > 0)
+                                        {
+                                            <span>(@((schedule.PickedUpBins * 100 / schedule.TotalBins).ToString("F0"))%)</span>
+                                        }
+                                    </small>
+                                </div>
+
+                                <div class="mt-2">
+                                    <small class="text-danger">
+                                        <i class="fas fa-trash me-1"></i>
+                                        Will be deleted
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="bin-card pending" style="border-left: 4px solid #dc2626; background-color: #fef2f2;">
+                        <div class="bin-header">
+                            <div class="bin-plate">
+                                <i class="fas fa-box me-2"></i> 
+                                @(Model.Bin?.b_PlateNo ?? "Unknown")
+                            </div>
+                            <span class="bin-status pending">
+                                @if (Model.PickedUpBins >= Model.TotalBins && Model.TotalBins > 0)
+                                {
+                                    <span class="bin-status completed">Completed</span>
+                                }
+                                else
+                                {
+                                    <span class="bin-status pending">Pending</span>
+                                }
+                            </span>
+                        </div>
+
+                        @if (Model.Bin?.Location != null)
+                        {
+                            <div class="bin-location">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                @Model.Bin.Location.l_Address1, @Model.Bin.Location.l_Address2
+                            </div>
+                        }
+
+                        <div class="bin-progress">
+                            <small class="text-muted">
+                                Progress: @Model.PickedUpBins / @Model.TotalBins
+                                @if (Model.TotalBins > 0)
+                                {
+                                    <span>(@((Model.PickedUpBins * 100 / Model.TotalBins).ToString("F0"))%)</span>
+                                }
+                            </small>
+                        </div>
+
+                        <div class="mt-2">
+                            <small class="text-danger">
+                                <i class="fas fa-trash me-1"></i>
+                                Will be deleted
+                            </small>
+                        </div>
+                    </div>
+                }
             </div>
 
-            <div class="detail-row">
-                <i class="fas fa-boxes detail-icon"></i>
-                <div class="detail-label">Total Bins:</div>
-                <div class="detail-value">@Html.DisplayFor(model => model.TotalBins)</div>
-            </div>
+            <form asp-action="Delete" method="post" id="deleteForm">
+                @Html.HiddenFor(model => model.s_ID)
+
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button type="submit" class="btn-delete" onclick="return confirmDeletion()">
+                        <i class="fas fa-trash me-2"></i>
+                        Yes, Delete Schedule Group
+                    </button>
+                </div>
+            </form>
         </div>
 
         <div class="card-footer">
             <a asp-action="Index" class="btn-outline">
-                <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i>
-                Cancel
+                <i class="fas fa-arrow-left me-2"></i>Back to List
             </a>
-            <form asp-action="Delete" style="display: inline;">
-                <input type="hidden" asp-for="s_ID" />
-                <button type="submit" class="btn btn-delete" onclick="return confirmDelete()">
-                    <i class="fas fa-trash-alt" style="margin-right: 0.5rem;"></i>
-                    Delete Schedule
-                </button>
-            </form>
+            <div>
+                <a asp-action="Details" asp-route-id="@Model.s_ID" class="btn-outline me-2">
+                    <i class="fas fa-eye me-2"></i>View Details
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.s_ID" class="btn-outline">
+                    <i class="fas fa-edit me-2"></i>Edit Instead
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    function confirmDelete() {
-        return confirm('Are you absolutely sure you want to delete this schedule? This action cannot be undone.');
-    }
-</script>
+    function confirmDeletion() {
+        const assignedUser = '@(Model.AssignedUser?.Name ?? "Unknown User")';
+        const scheduleDate = '@Model.s_Date.ToString("dd/MM/yyyy")';
+        const location = '@(Model.Location?.l_Address2 ?? "Unknown Location")';
+        const truck = '@(Model.Truck?.t_PlateNo ?? "Unknown Truck")'; 
+        const totalSchedules = @((ViewBag.RelatedSchedules as List<Kutip.Models.Schedule>)?.Count ?? 1);
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        const message = `Are you absolutely sure you want to delete this schedule group?\n\n` +
+                       `This will permanently delete ${totalSchedules} schedule(s) for:\n` +
+                       `• User: ${assignedUser}\n` +
+                       `• Truck: ${truck}\n` +
+                       `• Date: ${scheduleDate}\n` +
+                       `• Location: ${location}\n\n` +
+                       `This action cannot be undone!`;
+
+        return confirm(message);
     }
-}
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.location.href = '@Url.Action("Index")';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstButton = document.querySelector('.btn-delete');
+        if (firstButton) {
+            firstButton.focus();
+        }
+    });
+</script>

@@ -1,0 +1,135 @@
+@model Kutip.Models.Schedule
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="detail-section">
+                <h5>Pickup Information</h5>
+                <div class="detail-item">
+                    <span class="detail-label">Plate Number:</span>
+                    <span class="detail-value">@Model.Bin?.b_PlateNo</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Customer:</span>
+                    <span class="detail-value">@Model.Bin?.Customer?.c_Name</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Total Bins Scheduled:</span>
+                    <span class="detail-value">@Model.TotalBins</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Bins Picked Up:</span>
+                    <span class="detail-value">@Model.PickedUpBins</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">
+                        @{
+                            string statusClass = "unknown";
+                            string statusText = "Unknown";
+                            var today = DateTime.Today.Date;
+
+                            if (Model.PickedUpBins == Model.TotalBins && Model.TotalBins > 0)
+                            {
+                                statusClass = "completed";
+                                statusText = "Completed";
+                            }
+                            else if (Model.PickedUpBins > 0 && Model.PickedUpBins < Model.TotalBins)
+                            {
+                                statusClass = "in-progress";
+                                statusText = "In Progress";
+                            }
+                            else if (Model.PickedUpBins == 0 && Model.TotalBins > 0 && Model.s_Date.Date == today)
+                            {
+                                statusClass = "pending";
+                                statusText = "Pending";
+                            }
+                            else if (Model.s_Date.Date < today && Model.PickedUpBins == 0 && Model.TotalBins > 0)
+                            {
+                                statusClass = "missed";
+                                statusText = "Missed";
+                            }
+                            else if (Model.s_Date.Date > today)
+                            {
+                                statusClass = "scheduled-future";
+                                statusText = "Scheduled (Future)";
+                            }
+                        }
+                        <span class="pickup-status-badge @statusClass">
+                            @statusText
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h5>Schedule Details</h5>
+                <div class="detail-item">
+                    <span class="detail-label">Scheduled Date:</span>
+                    <span class="detail-value">@Model.s_Date.ToString("yyyy-MM-dd")</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Scheduled Time:</span>
+                    <span class="detail-value">@Model.s_PickupTime.ToString(@"hh\:mm") - @Model.s_PickupEnd.ToString(@"hh\:mm")</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Actual Pickup Time:</span>
+                    <span class="detail-value">
+                        @if (Model.s_ActualPickupTimestamp.HasValue)
+                        {
+                            @Model.s_ActualPickupTimestamp.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                        }
+                        else
+                        {
+                            @:N/A
+                        }
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Assigned Driver:</span>
+                    <span class="detail-value">@Model.AssignedUser?.Name</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Assigned Truck:</span>
+                    <span class="detail-value">@Model.Truck?.t_PlateNo</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="detail-section">
+                <h5>Location Details</h5>
+                <div class="detail-item">
+                    <span class="detail-label">Address 1:</span>
+                    <span class="detail-value">@Model.Location?.l_Address1</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Address 2 (Area):</span>
+                    <span class="detail-value">@Model.Location?.l_Address2</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">District:</span>
+                    <span class="detail-value">@Model.Location?.l_District</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">State:</span>
+                    <span class="detail-value">@Model.Location?.l_State</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Postcode:</span>
+                    <span class="detail-value">@Model.Location?.l_Postcode</span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.s_ImageUrl))
+            {
+                <div class="detail-section">
+                    <h5>Pickup Image</h5>
+                    <div class="text-center">
+                        <img src="@Model.s_ImageUrl" alt="Pickup Image" class="modal-image-preview">
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

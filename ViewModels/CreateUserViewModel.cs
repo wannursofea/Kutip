@@ -1,6 +1,5 @@
-﻿// Kutip.ViewModels/CreateUserViewModel.cs
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering; // For SelectListItem
+using Microsoft.AspNetCore.Mvc.Rendering; 
 
 namespace Kutip.ViewModels
 {
@@ -18,8 +17,5 @@ namespace Kutip.ViewModels
         [Required]
         [Display(Name = "Role")]
         public string Role { get; set; }
-
-        // Optional: If you want to populate roles directly in the ViewModel
-        // public List<SelectListItem> AvailableRoles { get; set; }
     }
 }

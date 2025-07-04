@@ -1,11 +1,5 @@
-﻿using Kutip.Constants; // Assuming your Roles enum is here
-using Kutip.Data;
-using Kutip.Models; // Assuming ApplicationUser is here
+using Kutip.Constants;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Linq; // Added for .FirstOrDefault() or .SingleOrDefault()
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection; // For GetService
 
 namespace Kutip.Data
 {
@@ -13,11 +7,9 @@ namespace Kutip.Data
     {
         public static async Task SeedRolesAndAdminAsync(IServiceProvider service)
         {
-            // Get managers from the service provider
-            var roleManager = service.GetRequiredService<RoleManager<IdentityRole>>(); // Use GetRequiredService for clarity and better error if not found
+            var roleManager = service.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = service.GetRequiredService<UserManager<ApplicationUser>>();
 
-            // 1. Seed Roles
             foreach (var roleName in Enum.GetNames<Roles>())
             {
                 if (!await roleManager.RoleExistsAsync(roleName))
@@ -26,17 +18,16 @@ namespace Kutip.Data
                 }
             }
 
-            // 2. Seed Admin/Operator User (as per your current code)
             string operatorEmail = "kutip.noreply@gmail.com";
-            string operatorPassword = "KutipPass123!"; 
-            string operatorName = "operatorKutip"; //QWERTY!@#123q
+            string operatorPassword = "KutipPass123!";
+            string operatorName = "operatorKutip";
             // every new created user will use default initial password of QWERTY!@#123q
 
             var operatorUser = await userManager.FindByEmailAsync(operatorEmail);
 
-            if (operatorUser == null) // User does not exist, so create it
+            if (operatorUser == null)
             {
-                operatorUser = new ApplicationUser // Assign to operatorUser variable
+                operatorUser = new ApplicationUser
                 {
                     UserName = operatorEmail,
                     Email = operatorEmail,
@@ -49,7 +40,6 @@ namespace Kutip.Data
 
                 if (createResult.Succeeded)
                 {
-                    // Assign role if user created successfully
                     if (!await userManager.IsInRoleAsync(operatorUser, Roles.Operator.ToString()))
                     {
                         await userManager.AddToRoleAsync(operatorUser, Roles.Operator.ToString());
@@ -57,16 +47,14 @@ namespace Kutip.Data
                 }
                 else
                 {
-                    // Log errors if creation failed (e.g., password policy)
                     foreach (var error in createResult.Errors)
                     {
                         Console.WriteLine($"Error creating operator user: {error.Description}");
                     }
                 }
             }
-            else // User already exists
+            else
             {
-                // Ensure the existing user is in the Operator role
                 if (!await userManager.IsInRoleAsync(operatorUser, Roles.Operator.ToString()))
                 {
                     await userManager.AddToRoleAsync(operatorUser, Roles.Operator.ToString());

@@ -1,4 +1,4 @@
-﻿@model Kutip.ViewModels.CustomerBinLocationViewModel
+@model Kutip.ViewModels.CustomerBinLocationViewModel
 
 @{
     ViewData["Title"] = "Edit Customer";
@@ -8,7 +8,6 @@
     <h2 class="text-center mb-4">✏️ Edit Customer</h2>
     <hr class="mb-4" />
 
-    <!-- Card Layout -->
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow-sm">
@@ -16,14 +15,12 @@
                     <form asp-action="Edit" method="post">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                        <!-- Hidden Fields -->
                         @Html.HiddenFor(m => m.Customer.c_ID)
                         @Html.HiddenFor(m => m.Bin.b_ID)
                         @Html.HiddenFor(m => m.Bin.c_ID)
                         @Html.HiddenFor(m => m.Bin.l_ID)
                         @Html.HiddenFor(m => m.Location.l_ID)
 
-                        <!-- Customer Section -->
                         <h5 class="mt-3 mb-3">👤 Customer Information</h5>
                         <div class="form-group">
                             <label asp-for="Customer.c_Name" class="font-weight-bold"></label>
@@ -41,7 +38,6 @@
                             <span asp-validation-for="Customer.c_Email" class="text-danger"></span>
                         </div>
 
-                        <!-- Location Section -->
                         <h5 class="mt-4 mb-3">📍 Location Details</h5>
                         <div class="row">
                             <div class="col-md-6">
@@ -75,7 +71,6 @@
                             </div>
                         </div>
 
-                        <!-- Bin Section -->
                         <h5 class="mt-4 mb-3">🗑️ Bin Information</h5>
                         <div class="form-group">
                             <label asp-for="Bin.b_PlateNo"></label>
@@ -91,7 +86,6 @@
                             <span asp-validation-for="Location.l_ColArea" class="text-danger"></span>
                         </div>
 
-                        <!-- Buttons -->
                         <div class="form-group mt-4 text-center">
                             <button type="submit" class="btn btn-primary px-4">
                                 <i class="fas fa-save"></i> Save Changes
@@ -110,3 +104,4 @@
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }
+

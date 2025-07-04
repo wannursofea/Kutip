@@ -1,8 +1,6 @@
-﻿using Humanizer;
+using Humanizer;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
-
 
 namespace Kutip.Models
 {

@@ -1,61 +1,331 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Kutip</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - Pickup & Ease</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Kutip.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />  @RenderSection("Styles", required: false)
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#667eea">
+    @* @await RenderSectionAsync("Styles", required: false)  add this one *@
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kutip</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+    <div class="app-container">
+        <!-- Sidebar -->
+        @if (User?.Identity?.IsAuthenticated == true)
+        {
+            <nav id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <a asp-controller="@(User.IsInRole("Operator") ? "Operator" : (User.IsInRole("Driver") ? "Driver" : "Home"))"
+                       asp-action="Index"
+                       class="logo-link">
+                        <i class="fas fa-recycle logo-icon"></i>
+                        <span class="logo-text">Pickup & Ease</span>
+                    </a>
+                    <button id="sidebarCollapseBtn" class="d-md-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+                
+                <div class="user-info">
+                    <div class="avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-details">
+                        <h6 class="mb-0">@User.Identity.Name</h6>
+                        <span class="user-role">
+                            @if (User.IsInRole("Operator"))
+                            {
+                                <span class="badge bg-primary">Operator</span>
+                            }
+                            else if (User.IsInRole("Driver"))
+                            {
+                                <span class="badge bg-success">Driver</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+                
+                <ul class="nav-links">
+                    @if (User.IsInRole("Operator"))
+                    {
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Operator" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <a asp-controller="Operator" asp-action="Index">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Customer" ? "active" : "")">
+                            <a asp-controller="Customer" asp-action="Index">
+                                <i class="fas fa-users"></i>
+                                <span>Customers</span>
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="Index">Customer</a>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bin" ? "active" : "")">
+                            <a asp-controller="Bin" asp-action="Index">
+                                <i class="fas fa-trash"></i>
+                                <span>Bins</span>
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Schedule" asp-action="Index">Schedule</a>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Schedule" ? "active" : "")">
+                            <a asp-controller="Schedule" asp-action="Index">
+                                <i class="fas fa-calendar"></i>
+                                <span>Schedules</span>
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="Index">Customer</a>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")">
+                            <a asp-controller="Operator" asp-action="UserList">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Users</span>
+                            </a>
                         </li>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reports" ? "active" : "")">
+                            <a asp-controller="Pickup" asp-action="Index">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Pickup</span>
+                            </a>
+                        </li>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Trucks" ? "active" : "")">
+                            <a asp-controller="Trucks" asp-action="Index">
+                                <i class="fas fa-truck-moving"></i>
+                                <span>Truck</span>
+                            </a>
+                        </li>
+                    }
+                    else if (User.IsInRole("Driver"))
+                    {
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Driver" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <a asp-controller="Driver" asp-action="Index">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Driver" && ViewContext.RouteData.Values["action"]?.ToString() == "MySchedules" ? "active" : "")">
+                            <a asp-controller="Driver" asp-action="MySchedules">
+                                <i class="fas fa-calendar"></i>
+                                <span>My Schedules</span>
+                            </a>
+                        </li>
+                        <li class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Driver" && ViewContext.RouteData.Values["action"]?.ToString() == "RouteOptimization" ? "active" : "")">
+                            <a asp-controller="Bin" asp-action="RoutePlan">
+                                <i class="fas fa-route"></i>
+                                <span>Routes</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
 
-                    </ul>
-                    <partial name="_LoginPartial" />
+                <div class="sidebar-footer">
+                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </nav>
+        }
+
+\        <main class="main-content @(!User.Identity.IsAuthenticated ? "full-width" : "")">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <header class="top-header">
+                    <div class="toggle-sidebar d-md-none">
+                        <button id="sidebarToggle">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                    @* <div class="header-search">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search..." />
+                        </div>
+                    </div> *@
+                    <div class="header-right">
+                        @if (User.IsInRole("Driver"))
+                        {
+                            @* <div class="header-notifications">
+                                <div class="notification-item">
+                                    <button class="notification-btn" id="notificationBtn">
+                                        <i class="fas fa-bell"></i>
+                                        <span class="notification-badge">3</span>
+                                    </button>
+                                    <div class="notification-dropdown" id="notificationDropdown">
+                                        <div class="notification-header">
+                                            <h6>Notifications</h6>
+                                            <span class="mark-all-read">Mark all as read</span>
+                                        </div>
+                                        <div class="notification-list">
+                                            <div class="notification-item-content">
+                                                <div class="notification-icon">
+                                                    <i class="fas fa-calendar text-primary"></i>
+                                                </div>
+                                                <div class="notification-text">
+                                                    <div class="notification-title">New Schedule Assigned</div>
+                                                    <div class="notification-time">2 minutes ago</div>
+                                                </div>
+                                            </div>
+                                            <div class="notification-item-content">
+                                                <div class="notification-icon">
+                                                    <i class="fas fa-route text-info"></i>
+                                                </div>
+                                                <div class="notification-text">
+                                                    <div class="notification-title">Route Updated</div>
+                                                    <div class="notification-time">1 hour ago</div>
+                                                </div>
+                                            </div>
+                                            <div class="notification-item-content">
+                                                <div class="notification-icon">
+                                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                                </div>
+                                                <div class="notification-text">
+                                                    <div class="notification-title">Schedule Change</div>
+                                                    <div class="notification-time">3 hours ago</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="notification-footer">
+                                            <a href="#" class="view-all-notifications">View All Notifications</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> *@
+                        }
+        
+                        <div class="user-profile-section">
+                            <div class="user-info-display">
+                                <div class="user-avatar-header">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <div class="user-details-header">
+                                    <div class="user-name">
+                                        @User.Identity.Name 
+                                    <div class="user-role-text">
+                                            @if (User.IsInRole("Operator"))
+                                        {
+                                            <span>Operator</span>
+                                        }
+                                        else if (User.IsInRole("Driver"))
+                                        {
+                                            <span>Driver</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            }
+            else
+            {
+                <header class="public-header">
+                    <nav class="navbar navbar-expand-lg navbar-dark">
+                        <div class="container">
+                            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-recycle"></i> KUTIP
+                            </a>
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="navbarNav">
+                                <ul class="navbar-nav ms-auto">
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Home" asp-action="About">About</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-controller="Home" asp-action="Contact">Contact</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link btn btn-outline-light login-btn" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </header>
+            }
+            
+            <div class="content-wrapper">
+                <div class="container-fluid">
+                    @RenderBody()
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
+            
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; @DateTime.Now.Year - Pickup & Ease Waste Management System</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            @* <a asp-controller="Home" asp-action="Privacy">Privacy</a> |
+                            <a asp-controller="Home" asp-action="Terms">Terms</a> *@
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Kutip - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+            
+            if (sidebarCollapseBtn) {
+                sidebarCollapseBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+            }
+            
+            document.addEventListener('click', function(event) {
+                const isClickInsideSidebar = sidebar && sidebar.contains(event.target);
+                const isClickOnToggleBtn = sidebarToggle && sidebarToggle.contains(event.target);
+                const isClickOnCollapseBtn = sidebarCollapseBtn && sidebarCollapseBtn.contains(event.target);
+                
+                if (sidebar && !isClickInsideSidebar && !isClickOnToggleBtn && !isClickOnCollapseBtn && window.innerWidth < 768) {
+                    sidebar.classList.remove('active');
+                }
+            });
+        });
+    </script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notificationBtn = document.getElementById('notificationBtn');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+    
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    notificationDropdown.classList.toggle('show');
+                });
+        
+                document.addEventListener('click', function(e) {
+                    if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                        notificationDropdown.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

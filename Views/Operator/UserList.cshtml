@@ -1,0 +1,309 @@
+@model IEnumerable<Kutip.ViewModels.UserViewModel>
+
+@{
+    ViewData["Title"] = "Manage Users";
+    // Retrieve counts from ViewBag
+    var totalUsers = (int)ViewBag.TotalUsersCount;
+    var operatorUsers = (int)ViewBag.OperatorUsersCount;
+    var driverUsers = (int)ViewBag.DriverUsersCount;
+    var totalLocations = (int)ViewBag.TotalLocationsCount; // New: for the Locations card
+}
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    
+
+    .action-buttons .btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-right: 5px;
+        transition: all 0.2s ease-in-out;
+        border: none;
+        color: white;
+    }
+
+
+</style>
+
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-users me-2 text-white"></i> User Management</h1>
+            <p>Manage application users and their roles</p>
+        </div>
+        <div class="text-end">
+            <div class="d-flex">
+                <a asp-action="CreateUser" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New User
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card primary">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Total Users</div>
+                    <div class="card-value" style="color: #4e73df;">@totalUsers</div>
+                </div>
+                <div class="card-icon" style="color: #4e73df;">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Operators</div>
+                    <div class="card-value" style="color: #1cc88a;">@operatorUsers</div>
+                </div>
+                <div class="card-icon" style="color: #1cc88a;">
+                    <i class="fas fa-user-cog"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Drivers</div>
+                    <div class="card-value" style="color: #36b9cc;">@driverUsers</div>
+                </div>
+                <div class="card-icon" style="color: #36b9cc;">
+                    <i class="fas fa-truck"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Locations</div> @* Changed from Collectors to Locations *@
+                    <div class="card-value" style="color: #f6c23e;">@totalLocations</div> @* Display TotalLocationsCount from ViewBag *@
+                </div>
+                <div class="card-icon" style="color: #f6c23e;">
+                    <i class="fas fa-map-marker-alt"></i> @* Changed icon to map-marker-alt *@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-container">
+    <div class="table-header">
+        <h5><i class="fas fa-list"></i> User List</h5>
+        <div class="table-actions">
+            <div class="input-group">
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search users...">
+                <button class="btn btn-sm btn-primary" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-user me-1"></i> Name</th>
+                        <th><i class="fas fa-envelope me-1"></i> Email</th>
+                        <th><i class="fas fa-user-tag me-1"></i> Role</th>
+                        <th class="text-center"><i class="fas fa-cogs me-1"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                        @item.Name.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">@item.Name</div>
+                                    </div>
+                                </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Email)
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">@Html.DisplayFor(modelItem => item.Role)</span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    @if (item.Role == Kutip.Constants.Roles.Operator.ToString())
+                                    {
+                                        <button type="button" class="btn-action btn-view view-operator-details" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-user-id="@item.Id" title="Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="DetailsUser" asp-route-id="@item.Id" class="btn-action btn-view" title="Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    }
+                                    <a asp-action="EditUser" asp-route-id="@item.Id" class="btn-action btn-edit" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn-action btn-delete" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="@item.Id" data-user-name="@item.Name" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h5>No Users Found</h5>
+            <p>Start by adding your first user</p>
+            <a asp-action="CreateUser" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New User
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete user "<span id="modalUserName"></span>"? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="DeleteUser" method="post" id="deleteUserForm">
+                    <input type="hidden" name="id" id="deleteUserId" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal (for Operator role) -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> @* Use modal-lg for a larger modal *@
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userDetailsModalLabel">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here via AJAX -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading user details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $("#searchInput").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $(".data-table tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+
+        // Delete User Modal Logic
+        var deleteUserModal = document.getElementById('deleteUserModal');
+        deleteUserModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var userId = button.getAttribute('data-user-id');
+            var userName = button.getAttribute('data-user-name');
+
+            var modalUserName = deleteUserModal.querySelector('#modalUserName');
+            var deleteUserIdInput = deleteUserModal.querySelector('#deleteUserId');
+
+            modalUserName.textContent = userName;
+            deleteUserIdInput.value = userId;
+        });
+
+        // User Details Modal Logic (for Operator role)
+        var userDetailsModal = document.getElementById('userDetailsModal');
+        userDetailsModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var userId = button.getAttribute('data-user-id');
+            var modalBody = userDetailsModal.querySelector('.modal-body');
+
+            // Show loading spinner
+            modalBody.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading user details...</p>
+                </div>
+            `;
+
+            // Fetch user details via AJAX
+            $.ajax({
+                url: '/Operator/DetailsUser/' + userId + '?isModal=true',
+                type: 'GET',
+                success: function(data) {
+                    // Inject the fetched HTML into the modal body
+                    modalBody.innerHTML = data;
+                    // Update modal title if needed (optional, can be done in the fetched content)
+                    // userDetailsModal.querySelector('.modal-title').textContent = 'User Details: ' + fetchedUserName;
+                },
+                error: function(xhr, status, error) {
+                    modalBody.innerHTML = `<div class="alert alert-danger" role="alert">
+                                            Failed to load user details. Please try again.
+                                            <br/>Error: ${xhr.status} ${xhr.statusText}
+                                        </div>`;
+                    console.error("AJAX Error:", status, error, xhr);
+                }
+            });
+        });
+
+        // Clear modal content when hidden to prevent stale data
+        userDetailsModal.addEventListener('hidden.bs.modal', function (event) {
+            var modalBody = userDetailsModal.querySelector('.modal-body');
+            modalBody.innerHTML = ''; // Clear content
+        });
+    </script>
+}

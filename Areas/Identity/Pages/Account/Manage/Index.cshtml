@@ -1,45 +1,159 @@
-﻿@page
-@model IndexModel
-@{
-    ViewData["Title"] = "Profile";
-    ViewData["ActivePage"] = ManageNavPages.Index;
-}
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+#nullable disable
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    @if (!string.IsNullOrEmpty(Model.Input.ProfilePicture))
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
+using Kutip.Models.Services;
+using Kutip.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
+namespace Kutip.Areas.Identity.Pages.Account.Manage
+{
+    public class IndexModel : PageModel
     {
-        <div class="col-md-4">
-            <img src="/uploads/@Model.Input.ProfilePicture" style="width:250px;height:300px" />
-        </div>
-    }
-    <div class="col-md-6">
-        <form id="profile-form" method="post" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Name" class="form-control" placeholder="Please enter your name." />
-                <label asp-for="Input.Name" class="form-label"></label>
-                <span asp-validation-for="Input.Name" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number." />
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-            </div>
-            <div class="m-2">
-                <label class="form-label" for="ProfilePicture">Profile picture</label>
-                <input asp-for="Input.ImageFile"/>
-            </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </form>
-    </div>
-</div>
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IFileService _fileService;
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+        public IndexModel(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IFileService fileService)
+
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            this._fileService = fileService;
+        }
+
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public string Username { get; set; }
+
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [TempData]
+        public string StatusMessage { get; set; }
+
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [BindProperty]
+        public InputModel Input { get; set; }
+
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public class InputModel
+        {
+            /// <summary>
+            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+            ///     directly from your code. This API may change or be removed in future releases.
+            /// </summary>
+            public string Name { get; set; }
+            [Phone]
+            [Display(Name = "Phone number")]
+            public string PhoneNumber { get; set; }
+            public string ProfilePicture { get; set; }
+            public IFormFile ImageFile { get; set; }
+        }
+
+        private async Task LoadAsync(ApplicationUser user)
+        {
+            var userName = await _userManager.GetUserNameAsync(user);
+            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+
+            Username = userName;
+
+            Input = new InputModel
+            {
+                Name = user.Name,
+                PhoneNumber = phoneNumber,
+                ProfilePicture = user.ProfilePicture
+            };
+        }
+
+        public async Task<IActionResult> OnGetAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            await LoadAsync(user);
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await LoadAsync(user);
+                return Page();
+            }
+
+            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            if (Input.Name != user.Name)
+            {
+                user.Name = Input.Name;
+                await _userManager.UpdateAsync(user);
+            }
+
+            if (Input.PhoneNumber != phoneNumber)
+            {
+                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
+                if (!setPhoneResult.Succeeded)
+                {
+                    StatusMessage = "Unexpected error when trying to set phone number.";
+                    return RedirectToPage();
+                }
+            }
+
+            // code for image upload
+            if (Input.ImageFile != null)
+            {
+                try
+                {
+                    var result = await _fileService.SaveFileAsync(Input.ImageFile, "uploads");
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        var oldImage = user.ProfilePicture;
+                        user.ProfilePicture = result;
+                        await _userManager.UpdateAsync(user);
+                        
+                        if (!string.IsNullOrEmpty(oldImage))
+                        {
+                            _fileService.DeleteFile(oldImage);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = "Error uploading image.";
+                }
+            }
+
+            await _signInManager.RefreshSignInAsync(user);
+            StatusMessage = "Your profile has been updated";
+            return RedirectToPage();
+        }
+    }
 }

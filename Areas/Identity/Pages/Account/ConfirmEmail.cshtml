@@ -1,8 +1,40 @@
-﻿@page
+@page
 @model ConfirmEmailModel
 @{
     ViewData["Title"] = "Confirm email";
+    // Set the layout to match the login page
+    Layout = "_SimpleLayout";
 }
 
-<h1>@ViewData["Title"]</h1>
-<partial name="_StatusMessage" model="Model.StatusMessage" />
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-section">
+                <i class="fas fa-recycle logo-icon"></i>
+                <h1 class="brand-name">Pickup & Ease</h1>
+            </div>
+            <h2 class="login-title">@ViewData["Title"]</h2> @* Uses the page title for the main header *@
+            <p class="login-subtitle">Your email confirmation status.</p> @* A simple subtitle for the page *@
+        </div>
+
+        <div class="login-body text-center"> @* Center the text for the status message *@
+            <partial name="_StatusMessage" model="Model.StatusMessage" />
+            <p class="mt-4">
+                You can now return to the <a asp-area="Identity" asp-page="/Account/Login" class="link-primary">Login page</a>.
+            </p>
+        </div>
+
+        <div class="login-footer">
+            <p>&copy; @DateTime.Now.Year KUTIP. All rights reserved.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" /> @* Keep this if _StatusMessage or other components might use it *@
+}

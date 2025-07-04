@@ -1,12 +1,11 @@
-﻿using Kutip.Constants;
+using Kutip.Constants;
 
 namespace Kutip.Constants
 {
     public enum Roles
     {
         Operator,
-        Driver,
-        Collector
+        Driver
     }
     public class MyConstants
     {

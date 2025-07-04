@@ -1,0 +1,246 @@
+@model Kutip.Models.Truck
+
+@{
+    ViewData["Title"] = "Truck Details";
+    var uniqueLocations = ViewBag.UniqueLocations as List<string> ?? new List<string>();
+    var allDrivers = ViewBag.AllDrivers as List<dynamic> ?? new List<dynamic>();
+    var schedules = ViewBag.Schedules as List<Kutip.Models.Schedule> ?? new List<Kutip.Models.Schedule>();
+    var searchDate = ViewBag.SearchDate as DateTime?;
+    var searchLocationAddress2 = ViewBag.SearchLocationAddress2 as string;
+    var searchDriverId = ViewBag.SearchDriverId as string;
+
+    var groupedSchedules = schedules
+        .GroupBy(s => s.s_Date.Date)
+        .OrderBy(g => g.Key)
+        .ToList();
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https:cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    .schedule-card-item {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+        text-decoration: none; 
+        color: inherit; 
+        display: block; 
+    }
+
+    .schedule-card-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .schedule-card-item .card-header {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .schedule-card-item .card-body-info {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .schedule-card-item .card-body-info div {
+        margin-bottom: 0.3rem;
+    }
+
+    .schedule-card-item .card-body-info i {
+        width: 18px; 
+        text-align: center;
+        margin-right: 0.5rem;
+        color: #777;
+    }
+
+    .badge-status {
+        padding: 0.4em 0.8em;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-status.bg-success {
+        background-color: #28a745 !important; 
+        color: white;
+    }
+
+    .badge-status.bg-danger {
+        background-color: #dc3545 !important;
+        color: white;
+    }
+
+    .badge-status.bg-warning {
+        background-color: #ffc107 !important; 
+        color: #212529; 
+    }
+
+    .badge-status.bg-info {
+        background-color: #17a2b8 !important; 
+        color: white;
+    }
+
+    .schedule-date-group {
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        background-color: #f8f9fa;
+    }
+
+    .schedule-date-group h4 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: #343a40;
+        font-weight: 600;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 0.5rem;
+    }
+</style>
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-1">Truck Details</h1>
+            <p class="text-muted mb-0">Overview and assigned schedules for truck: <strong>@Model.t_PlateNo</strong></p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Trucks List
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Truck Information</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Plate Number:</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.t_PlateNo)</dd>
+
+
+                <dt class="col-sm-3">Status:</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.t_Status)</dd>
+            </dl>
+        </div>
+        <div class="card-footer text-end">
+            <a asp-action="Edit" asp-route-id="@Model.t_ID" class="btn btn-warning me-2">
+                <i class="fas fa-edit me-2"></i>Edit Truck
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model.t_ID" class="btn btn-danger"
+               onclick="return confirm('Are you sure you want to delete this truck?')">
+                <i class="fas fa-trash me-2"></i>Delete Truck
+            </a>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Assigned Schedules</h3>
+
+    <form asp-action="Details" method="get" class="mb-4 p-3 border rounded bg-light">
+        <input type="hidden" name="id" value="@Model.t_ID" />
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4 col-lg-3">
+                <label for="searchDate" class="form-label">Date</label>
+                <input type="date" class="form-control" id="searchDate" name="searchDate" value="@(searchDate?.ToString("yyyy-MM-dd"))" />
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label for="searchLocationAddress2" class="form-label">Location (Area)</label>
+                <select class="form-select" id="searchLocationAddress2" name="searchLocationAddress2">
+                    <option value="">All Locations</option>
+                    @foreach (var location in uniqueLocations)
+                    {
+                        <option value="@location" selected="@(location == searchLocationAddress2)">@location</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <label for="searchDriverId" class="form-label">Driver</label>
+                <select class="form-select" id="searchDriverId" name="searchDriverId">
+                    <option value="">All Drivers</option>
+                    @foreach (var driver in allDrivers)
+                    {
+                        <option value="@driver.Id" selected="@(driver.Id == searchDriverId)">@driver.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-lg-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 me-2">
+                    <i class="fas fa-filter me-2"></i>Apply Filters
+                </button>
+                <a asp-action="Details" asp-route-id="@Model.t_ID" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-redo me-2"></i>Clear
+                </a>
+            </div>
+        </div>
+    </form>
+
+    @if (groupedSchedules.Any())
+    {
+        @foreach (var group in groupedSchedules)
+        {
+            <div class="schedule-date-group">
+                <h4><i class="fas fa-calendar-day me-2"></i>Schedules for @group.Key.ToShortDateString()</h4>
+                <div class="row">
+                    @foreach (var item in group.OrderBy(s => s.s_PickupTime))
+                    {
+                        string scheduleStatusClass = "";
+                        string scheduleStatusText = "";
+
+                        if (item.PickedUpBins >= item.TotalBins && item.TotalBins > 0)
+                        {
+                            scheduleStatusClass = "bg-success"; 
+                            scheduleStatusText = "Completed";
+                        }
+                        else if (item.s_Date.Date < DateTime.Today.Date && item.PickedUpBins < item.TotalBins)
+                        {
+                            scheduleStatusClass = "bg-danger";
+                            scheduleStatusText = "Missed";
+                        }
+                        else if (item.PickedUpBins > 0) 
+                        {
+                            scheduleStatusClass = "bg-warning"; 
+                            scheduleStatusText = "In Progress";
+                        }
+                        else 
+                        {
+                            scheduleStatusClass = "bg-info"; 
+                            scheduleStatusText = "Pending";
+                        }
+
+                        <div class="col-md-6 col-lg-4">
+                            <a asp-controller="Schedule" asp-action="Details" asp-route-id="@item.s_ID" class="schedule-card-item">
+                                <div class="card-header">
+                                    <span><i class="fas fa-clock me-2"></i>@item.s_PickupTime.ToString(@"hh\:mm")</span> 
+                                    <span class="badge-status @scheduleStatusClass">@scheduleStatusText</span>
+                                </div>
+                                <div class="card-body-info">
+                                    <div><i class="fas fa-truck-pickup"></i> Bin Plate: <strong>@item.Bin?.b_PlateNo</strong></div>
+                                    <div><i class="fas fa-map-marker-alt"></i> Location: @(item.Bin?.Location?.l_Address2 ?? "N/A")</div>
+                                    <div><i class="fas fa-user"></i> Driver: @(item.AssignedUser?.Name ?? "Unassigned")</div>
+                                    <div><i class="fas fa-boxes"></i> Bins: @item.PickedUpBins / @item.TotalBins</div>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info text-center py-4" role="alert">
+            <i class="fas fa-info-circle fa-2x mb-2"></i>
+            <div>No schedules found for this truck matching the selected criteria.</div>
+        </div>
+    }
+</div>

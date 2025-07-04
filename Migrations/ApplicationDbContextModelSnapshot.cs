@@ -17,7 +17,7 @@ namespace Kutip.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -154,6 +154,12 @@ namespace Kutip.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("l_ID"));
 
+                    b.Property<decimal>("Latitude")
+                        .HasColumnType("decimal(18, 10)");
+
+                    b.Property<decimal>("Longitude")
+                        .HasColumnType("decimal(18, 10)");
+
                     b.Property<string>("l_Address1")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -195,9 +201,6 @@ namespace Kutip.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("Binb_ID")
-                        .HasColumnType("int");
-
                     b.Property<int>("PickedUpBins")
                         .HasColumnType("int");
 
@@ -210,8 +213,14 @@ namespace Kutip.Migrations
                     b.Property<int>("l_ID")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("s_ActualPickupTimestamp")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("s_Date")
                         .HasColumnType("date");
+
+                    b.Property<string>("s_ImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<TimeSpan>("s_PickupEnd")
                         .HasColumnType("time");
@@ -219,17 +228,42 @@ namespace Kutip.Migrations
                     b.Property<TimeSpan>("s_PickupTime")
                         .HasColumnType("time");
 
+                    b.Property<int>("t_ID")
+                        .HasColumnType("int");
+
                     b.HasKey("s_ID");
 
                     b.HasIndex("AssignedUser_ID");
-
-                    b.HasIndex("Binb_ID");
 
                     b.HasIndex("b_ID");
 
                     b.HasIndex("l_ID");
 
+                    b.HasIndex("t_ID");
+
                     b.ToTable("Schedules");
+                });
+
+            modelBuilder.Entity("Kutip.Models.Truck", b =>
+                {
+                    b.Property<int>("t_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("t_ID"));
+
+                    b.Property<string>("t_PlateNo")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("t_Status")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("t_ID");
+
+                    b.ToTable("Trucks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -389,12 +423,8 @@ namespace Kutip.Migrations
                     b.HasOne("Kutip.Data.ApplicationUser", "AssignedUser")
                         .WithMany()
                         .HasForeignKey("AssignedUser_ID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Kutip.Models.Bin", null)
-                        .WithMany("Schedules")
-                        .HasForeignKey("Binb_ID");
 
                     b.HasOne("Kutip.Models.Bin", "Bin")
                         .WithMany()
@@ -408,11 +438,19 @@ namespace Kutip.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Kutip.Models.Truck", "Truck")
+                        .WithMany("Schedules")
+                        .HasForeignKey("t_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("AssignedUser");
 
                     b.Navigation("Bin");
 
                     b.Navigation("Location");
+
+                    b.Navigation("Truck");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -466,11 +504,6 @@ namespace Kutip.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Kutip.Models.Bin", b =>
-                {
-                    b.Navigation("Schedules");
-                });
-
             modelBuilder.Entity("Kutip.Models.Customer", b =>
                 {
                     b.Navigation("Bins");
@@ -479,6 +512,11 @@ namespace Kutip.Migrations
             modelBuilder.Entity("Kutip.Models.Location", b =>
                 {
                     b.Navigation("Bins");
+                });
+
+            modelBuilder.Entity("Kutip.Models.Truck", b =>
+                {
+                    b.Navigation("Schedules");
                 });
 #pragma warning restore 612, 618
         }

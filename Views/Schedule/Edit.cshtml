@@ -1,105 +1,445 @@
 ﻿@model Kutip.Models.Schedule
 
 @{
-    ViewData["Title"] = "Edit";
-
-    var currentUser = await UserManager.GetUserAsync(User);
-    var isOperator = await UserManager.IsInRoleAsync(currentUser, Kutip.Constants.Roles.Operator.ToString());
+    ViewData["Title"] = "Edit Schedule";
 }
 
-<h1>Edit</h1>
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<h4>Schedule</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="s_ID" />
+    <style>
+        .field-validation-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
 
-            <div class="form-group">
-                <label asp-for="AssignedUser_ID" class="control-label"></label>
-                @if (isOperator)
+        .input-validation-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.1) !important;
+        }
+
+        .validation-summary-errors {
+            color: #dc3545;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #dc3545;
+            border-radius: 0.375rem;
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+
+            .validation-summary-errors ul {
+                margin-bottom: 0;
+                padding-left: 1.5rem;
+            }
+
+        .text-danger {
+            color: #dc3545;
+        }
+
+        .schedule-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .schedule-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 0;
+            margin-top: 1.5rem;
+        }
+
+        .card-header {
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-footer {
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem 1.5rem;
+            border-radius: 0 0 8px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .form-label i {
+                color: #6b7280;
+                font-size: 0.875rem;
+                width: 16px;
+                text-align: center;
+            }
+
+        .form-control {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+            .form-control:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                outline: none;
+            }
+
+            .form-control.is-invalid {
+                border-color: #dc3545;
+                box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+            }
+
+        .btn-update {
+            background-color: #000;
+            border-color: #000;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+            .btn-update:hover {
+                background-color: #1f2937;
+                border-color: #1f2937;
+            }
+
+        .btn-secondary {
+            background-color: #6b7280;
+            border-color: #6b7280;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-outline:hover {
+                background-color: #f3f4f6;
+                text-decoration: none;
+                color: #374151;
+            }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0;
+        }
+
+        .validation-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        .readonly-field {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .info-badge {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .warning-badge {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+}
+
+<div class="schedule-container">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="schedule-card">
+        <div class="card-header">
+            <h3 class="section-title">Edit Schedule Group</h3>
+            <p class="section-subtitle">Update all related schedules for this pickup session</p>
+        </div>
+
+        <div class="card-body">
+            <div class="warning-badge">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Bulk Edit Mode:</strong> Changes will be applied to ALL schedules with the same assigned user, date, time, and location address. This ensures consistency across related pickup schedules.
+            </div>
+
+            <div class="info-badge">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Current Group:</strong>
+                @if (Model.AssignedUser != null)
                 {
-                    <select asp-for="AssignedUser_ID" class="form-control" asp-items="ViewBag.AssignedUsers">
-                        <option value="">-- Select Assigned User --</option>
-                    </select>
+                    <span>@Model.AssignedUser.Name</span>
                 }
-                else
+                @if (Model.Truck != null)
                 {
-                    <input asp-for="AssignedUser.Name" class="form-control" disabled /> 
-                    <input type="hidden" asp-for="AssignedUser_ID" /> 
+                    <span>with Truck @Model.Truck.t_PlateNo</span>
                 }
-                <span asp-validation-for="AssignedUser_ID" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="b_ID" class="control-label"></label>
-                @if (isOperator)
+                on @Model.s_Date.ToString("dd/MM/yyyy")
+                from @Model.s_PickupTime.ToString("hh\\:mm") to @Model.s_PickupEnd.ToString("hh\\:mm")
+                @if (Model.Location != null)
                 {
-                    <select asp-for="b_ID" class="form-control" asp-items="ViewBag.Bins">
-                        <option value="">-- Select Bin --</option>
-                    </select>
+                    <span>at @Model.Location.l_Address2</span>
                 }
-                else
-                {
-                    <input asp-for="Bin.Location.l_Address1" class="form-control" disabled /> 
-                    <input type="hidden" asp-for="b_ID" />
-                }
-                <span asp-validation-for="b_ID" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
-                <label asp-for="s_Date" class="control-label"></label>
-                <input asp-for="s_Date" class="form-control" />
-                <span asp-validation-for="s_Date" class="text-danger"></span>
-            </div>
+            <form asp-action="Edit" id="scheduleForm">
+                @Html.HiddenFor(model => model.s_ID)
+                @Html.HiddenFor(model => model.b_ID)
+                @Html.HiddenFor(model => model.PickedUpBins)
+                @Html.HiddenFor(model => model.TotalBins)
 
-            <div class="form-group">
-                <label asp-for="s_PickupTime" class="control-label"></label>
-                <input asp-for="s_PickupTime" class="form-control" />
-                <span asp-validation-for="s_PickupTime" class="text-danger"></span>
-            </div>
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-            <div class="form-group">
-                <label asp-for="l_ID" class="control-label"></label>
-                @if (isOperator)
-                {
-                    <select asp-for="l_ID" class="form-control" asp-items="ViewBag.Locations"> 
-                        <option value="">-- Select Location --</option>
-                    </select>
-                }
-                else
-                {
-                    <input asp-for="Location.l_Address1" class="form-control" disabled /> 
-                    <input type="hidden" asp-for="l_ID" /> 
-                }
-                <span asp-validation-for="l_ID" class="text-danger"></span>
-            </div>
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="AssignedUser_ID" class="form-label">
+                            <i class="fas fa-user"></i>
+                            Assigned Driver
+                        </label>
+                        <select asp-for="AssignedUser_ID" class="form-control" asp-items="ViewBag.AssignedUsers" required>
+                            <option value="">Select a driver</option>
+                        </select>
+                        <span asp-validation-for="AssignedUser_ID" class="text-danger"></span>
+                        <small class="text-muted">Will update all related schedules</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="l_ID" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Location
+                        </label>
+                        <select asp-for="l_ID" class="form-control" asp-items="ViewBag.l_ID" id="locationDropdown" onchange="loadBinsForLocation()">
+                            <option value="">Select a location</option>
+                        </select>
+                        <span asp-validation-for="l_ID" class="text-danger"></span>
+                        <small class="text-muted">Changing location will reassign all bins</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="t_ID" class="form-label">
+                            <i class="fas fa-truck"></i>
+                            Assigned Truck
+                        </label>
+                        <select asp-for="t_ID" class="form-control" asp-items="ViewBag.Trucks" required id="t_ID">
+                            <option value="">Select a truck</option>
+                        </select>
+                        <span asp-validation-for="t_ID" class="text-danger"></span>
+                        <small class="text-muted">Will update all related schedules</small>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="PickedUpBins" class="control-label"></label>
-                <input asp-for="PickedUpBins" class="form-control" />
-                <span asp-validation-for="PickedUpBins" class="text-danger"></span>
-            </div>
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="s_Date" class="form-label">
+                            <i class="fas fa-calendar"></i>
+                            Schedule Date
+                        </label>
+                        <input asp-for="s_Date" type="date" class="form-control" id="scheduleDate" />
+                        <span asp-validation-for="s_Date" class="text-danger"></span>
+                        <small class="text-muted">Will update all related schedules</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="s_PickupTime" class="form-label">
+                            <i class="fas fa-clock"></i>
+                            Start Time
+                        </label>
+                        <input asp-for="s_PickupTime" type="time" class="form-control" id="startTime" onchange="validateTimes()" />
+                        <span asp-validation-for="s_PickupTime" class="text-danger"></span>
+                        <small class="text-muted">Will update all related schedules</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="s_PickupEnd" class="form-label">
+                            <i class="fas fa-clock"></i>
+                            End Time
+                        </label>
+                        <input asp-for="s_PickupEnd" type="time" class="form-control" id="endTime" onchange="validateTimes()" />
+                        <span asp-validation-for="s_PickupEnd" class="text-danger"></span>
+                        <span id="timeValidationError" class="validation-error" style="display: none;">End time must be later than start time</span>
+                        <small class="text-muted">Will update all related schedules</small>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label asp-for="TotalBins" class="control-label"></label>
-                <input asp-for="TotalBins" class="form-control" />
-                <span asp-validation-for="TotalBins" class="text-danger"></span>
-            </div>
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-update" id="submitBtn" onclick="return confirmBulkUpdate()">
+                        <i class="fas fa-save me-2"></i>Update All Related Schedules
+                    </button>
+                </div>
+            </form>
+        </div>
 
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+        <div class="card-footer">
+            <a asp-action="Index" class="btn-outline">Back to List</a>
+            <div>
+                <a asp-action="Details" asp-route-id="@Model.s_ID" class="btn-outline me-2">View Details</a>
+                <button type="button" class="btn-outline" onclick="resetForm()">Reset Changes</button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        let originalFormData = {};
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('scheduleForm');
+            const formData = new FormData(form);
+            for (let [key, value] of formData.entries()) {
+                originalFormData[key] = value;
+            }
+
+            loadBinsForLocation();
+        });
+
+        function confirmBulkUpdate() {
+            return confirm('This will update ALL related schedules with the same assigned user, date, time, and location. Are you sure you want to continue?');
+        }
+
+        function loadBinsForLocation() {
+            console.log("Loading bins for location (Edit view - placeholder)...");
+        }
+
+        function validateTimes() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const errorSpan = document.getElementById('timeValidationError');
+            const endTimeInput = document.getElementById('endTime');
+
+            if (!startTime || !endTime) {
+                errorSpan.style.display = 'none';
+                endTimeInput.classList.remove('is-invalid');
+                return true;
+            }
+
+            if (endTime <= startTime) {
+                errorSpan.style.display = 'block';
+                endTimeInput.classList.add('is-invalid');
+                return false;
+            } else {
+                errorSpan.style.display = 'none';
+                endTimeInput.classList.remove('is-invalid');
+                return true;
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            const assignedUser = document.querySelector('[name="AssignedUser_ID"]');
+            const location = document.querySelector('[name="l_ID"]');
+            const scheduleDate = document.querySelector('[name="s_Date"]');
+            const assignedTruck = document.querySelector('[name="t_ID"]');
+
+            function validateField(element) {
+                if (!element.value) {
+                    element.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    element.classList.remove('is-invalid');
+                }
+            }
+
+            validateField(assignedUser);
+            validateField(location);
+            validateField(scheduleDate);
+            validateField(assignedTruck);
+
+            if (!validateTimes()) {
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function resetForm() {
+            if (confirm('Are you sure you want to reset all changes? This will restore the original values.')) {
+                const form = document.getElementById('scheduleForm');
+                for (let [key, value] of Object.entries(originalFormData)) {
+                    const element = form.querySelector(`[name="${key}"]`);
+                    if (element) {
+                        element.value = value;
+                    }
+                }
+
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.validation-error').forEach(el => el.style.display = 'none');
+            }
+        }
+
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                alert('Please fill in all required fields and fix any validation errors.');
+                return false;
+            }
+        });
+
+        document.querySelector('[name="AssignedUser_ID"]').addEventListener('change', validateForm);
+        document.querySelector('[name="l_ID"]').addEventListener('change', validateForm);
+        document.querySelector('[name="s_Date"]').addEventListener('change', validateForm);
+        document.querySelector('[name="t_ID"]').addEventListener('change', validateForm);
+    </script>
 }

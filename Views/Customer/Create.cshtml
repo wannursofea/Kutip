@@ -1,4 +1,4 @@
-﻿@model Kutip.ViewModels.CustomerBinLocationViewModel
+@model Kutip.ViewModels.CustomerBinLocationViewModel
 
 @{
     ViewData["Title"] = "Add Customer";
@@ -9,13 +9,12 @@
     <hr class="mb-4" />
 
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-10">
             <div class="card shadow-sm">
                 <div class="card-body">
                     <form asp-action="Create" method="post">
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                        <!-- Customer Section -->
                         <h5 class="mt-3 mb-3">👤 Customer Information</h5>
                         <div class="form-group">
                             <label asp-for="Customer.c_Name" class="font-weight-bold"></label>
@@ -33,57 +32,85 @@
                             <span asp-validation-for="Customer.c_Email" class="text-danger"></span>
                         </div>
 
-                        <!-- Location Section -->
                         <h5 class="mt-4 mb-3">📍 Location Information</h5>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label asp-for="Location.l_Address1"></label>
-                                    <input asp-for="Location.l_Address1" class="form-control" />
+                                    <div class="input-group mb-3">
+                                        <input type="text" id="searchInput" class="form-control" placeholder="Search for address or place..." />
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" type="button" id="searchButton">
+                                                <i class="fas fa-search"></i> Search
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Select Location on Map</label>
+                                    <div id="googleMap"></div>
+                                    <small class="form-text text-muted">Click on the map to select a location</small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Location.l_Address1" class="font-weight-bold"></label>
+                                    <input asp-for="Location.l_Address1" class="form-control" id="address1Input" />
                                     <span asp-validation-for="Location.l_Address1" class="text-danger"></span>
                                 </div>
                                 <div class="form-group">
-                                    <label asp-for="Location.l_Postcode"></label>
-                                    <input asp-for="Location.l_Postcode" class="form-control" />
-                                    <span asp-validation-for="Location.l_Postcode" class="text-danger"></span>
-                                </div>
-                                <div class="form-group">
-                                    <label asp-for="Location.l_State"></label>
-                                    <input asp-for="Location.l_State" class="form-control" />
-                                    <span asp-validation-for="Location.l_State" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Location.l_Address2"></label>
-                                    <input asp-for="Location.l_Address2" class="form-control" />
+                                    <label asp-for="Location.l_Address2" class="font-weight-bold"></label>
+                                    <input asp-for="Location.l_Address2" class="form-control" id="address2Input" />
                                     <span asp-validation-for="Location.l_Address2" class="text-danger"></span>
                                 </div>
                                 <div class="form-group">
-                                    <label asp-for="Location.l_District"></label>
-                                    <input asp-for="Location.l_District" class="form-control" />
+                                    <label asp-for="Location.l_Postcode" class="font-weight-bold"></label>
+                                    <input asp-for="Location.l_Postcode" class="form-control" id="postcodeInput" />
+                                    <span asp-validation-for="Location.l_Postcode" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="Location.l_District" class="font-weight-bold"></label>
+                                    <select asp-for="Location.l_District" class="form-control" id="districtSelect" onchange="loadMukims()">
+                                        <option value="">Select District</option>
+                                        <option value="Johor Bahru">Johor Bahru</option>
+                                        <option value="Kulai">Kulai</option>
+                                        <option value="Pontian">Pontian</option>
+                                        <option value="Kota Tinggi">Kota Tinggi</option>
+                                        <option value="Kluang">Kluang</option>
+                                        <option value="Segamat">Segamat</option>
+                                        <option value="Muar">Muar</option>
+                                        <option value="Batu Pahat">Batu Pahat</option>
+                                        <option value="Mersing">Mersing</option>
+                                        <option value="Tangkak">Tangkak</option>
+                                    </select>
                                     <span asp-validation-for="Location.l_District" class="text-danger"></span>
                                 </div>
+                                <div class="form-group">
+                                    <label asp-for="Location.l_ColArea" class="font-weight-bold">Sub-District</label>
+                                    <select asp-for="Location.l_ColArea" class="form-control" id="mukimSelect">
+                                        <option value="">Select Sub-District</option>
+                                    </select>
+                                    <span asp-validation-for="Location.l_ColArea" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="Location.l_State" class="font-weight-bold"></label>
+                                    <input asp-for="Location.l_State" class="form-control" id="stateInput" value="Johor" readonly />
+                                    <span asp-validation-for="Location.l_State" class="text-danger"></span>
+                                </div>
+
                             </div>
                         </div>
 
-                        <!-- Bin Section -->
+                        <input type="hidden" id="latitudeInput" asp-for="Location.Latitude" />
+                        <input type="hidden" id="longitudeInput" asp-for="Location.Longitude" />
+
                         <h5 class="mt-4 mb-3">🗑️ Bin Details</h5>
                         <div class="form-group">
-                            <label asp-for="Bin.b_PlateNo"></label>
+                            <label asp-for="Bin.b_PlateNo" class="font-weight-bold"></label>
                             <input asp-for="Bin.b_PlateNo" class="form-control" />
                             <span asp-validation-for="Bin.b_PlateNo" class="text-danger"></span>
                         </div>
 
-                        <div class="form-group">
-                            <label asp-for="Location.l_ColArea"></label>
-                            <select asp-for="Location.l_ColArea" class="form-control" asp-items="Model.ColAreaList">
-                                <option value="">-- Select Collection Area --</option>
-                            </select>
-                            <span asp-validation-for="Location.l_ColArea" class="text-danger"></span>
-                        </div>
-
-                        <!-- Buttons -->
                         <div class="form-group mt-4 text-center">
                             <button type="submit" class="btn btn-success px-4">
                                 <i class="fas fa-plus-circle"></i> Create
@@ -100,6 +127,247 @@
 </div>
 
 @section Scripts {
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAamZwkYI6Wf1UOb6P39ucK_MU7kiqqwTo&callback=initMap"></script>
+
+    <script>
+        const mukimsByDistrict = {
+            "Johor Bahru": ["Jelutong", "Plentong", "Pulai", "Sungai Tiram", "Tanjung Kupang", "Tebrau", "Bandar Johor Bahru"],
+            "Kulai": ["Kulai", "Senai", "Sedenak", "Bukit Batu", "Bandar Kulai"],
+            "Pontian": ["Ayer Baloi", "Air Masin", "Api-Api", "Benut", "Jeram Batu", "Pengkalan Raja", "Pontian", "Rimba Terjun", "Serkat", "Sungai Karang", "Sungei Pinggan", "Bandar Benut", "Bandar Pontian Kechil", "Pekan Nenas"],
+            "Kota Tinggi": ["Ulu Sungai Johor", "Ulu Sungei Sedili Besar", "Johor Lama", "Kambau", "Kota Tinggi", "Pantai Timur", "Pengerang", "Sedili Besar", "Sedili Kechil", "Tanjung Surat", "Bandar Kota Tinggi"],
+            "Kluang": ["Ulu Benut", "Kahang", "Kluang", "Layang-Layang", "Machap", "Niyor", "Paloh", "Renggam", "Bandar Kluang", "Bandar Paloh", "Bandar Renggam"],
+            "Batu Pahat": ["Bagan", "Chaah Bahru", "Kampung Bahru", "Linau", "Lubok", "Minyak Beku", "Peserai", "Sri Gading", "Sri Medan", "Simpang Kanan", "Simpang Kiri", "Sungai Kluang", "Sungai Punggor", "Tanjung Sembrong"],
+            "Muar": ["Ayer Hitam", "Bandar Maharani", "Bukit Kepong", "Jalan Bakri", "Jorak", "Lenga", "Parit Bakar", "Parit Jawa", "Sri Menanti", "Sungai Balang", "Sungai Raya", "Sungai Terap"],
+            "Tangkak": ["Tangkak", "Grisek", "Serom", "Bukit Serampang", "Kesang", "Kundang"],
+            "Segamat": ["Bekok", "Buloh Kasap", "Chaah", "Gemas", "Gemereh", "Jabi", "Jementah", "Labis", "Pogoh", "Sermin", "Sungai Segamat"],
+            "Mersing": ["Jemaluang", "Lenggor", "Mersing", "Padang Endau", "Penyabong", "Pulau Aur", "Pulau Babi", "Pulau Pemanggil", "Pulau Sibu", "Pulau Tinggi", "Sembrong", "Tenggaroh", "Tenglu", "Triang"]
+        };
+
+        let map;
+        let marker;
+        let geocoder;
+
+        function initMap() {
+            const initialLocation = { lat: 1.4927, lng: 103.7414 };
+
+            map = new google.maps.Map(document.getElementById('googleMap'), {
+                center: initialLocation,
+                zoom: 11
+            });
+
+            geocoder = new google.maps.Geocoder();
+
+            map.addListener('click', (e) => {
+                placeMarker(e.latLng);
+                reverseGeocode(e.latLng);
+            });
+
+            const existingLat = parseFloat(document.getElementById('latitudeInput').value);
+            const existingLng = parseFloat(document.getElementById('longitudeInput').value);
+
+            if (existingLat !== 0 && existingLng !== 0) {
+                const existingLatLng = new google.maps.LatLng(existingLat, existingLng);
+                placeMarker(existingLatLng);
+                map.setCenter(existingLatLng);
+                map.setZoom(16); 
+            }
+        }
+
+        function placeMarker(location) {
+            if (marker) {
+                marker.setMap(null); 
+            }
+            marker = new google.maps.Marker({
+                position: location,
+                map: map
+            });
+            document.getElementById('latitudeInput').value = location.lat();
+            document.getElementById('longitudeInput').value = location.lng();
+        }
+
+        function reverseGeocode(latLng) {
+            geocoder.geocode({ 'location': latLng }, (results, status) => {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        parseAndFillAddress(results[0].address_components, results[0].formatted_address);
+                        showNotification('Address fields updated successfully!', 'success');
+                    } else {
+                        showNotification('No address found for this location.', 'warning');
+                    }
+                } else {
+                    console.error('Geocoder failed due to: ' + status);
+                    showNotification('Error retrieving address information from Google Maps.', 'error');
+                }
+            });
+        }
+
+        function parseAndFillAddress(addressComponents, formattedAddress) {
+            let streetNumber = '';
+            let route = ''; 
+            let suburb = ''; 
+            let postalCode = '';
+            let district = ''; 
+            let state = 'Johor'; 
+
+            for (let i = 0; i < addressComponents.length; i++) {
+                const component = addressComponents[i];
+                const types = component.types;
+
+                if (types.includes('street_number')) {
+                    streetNumber = component.long_name;
+                } else if (types.includes('route')) {
+                    route = component.long_name;
+                } else if (types.includes('sublocality') || types.includes('neighborhood') || types.includes('sublocality_level_1')) {
+                    suburb = component.long_name;
+                } else if (types.includes('postal_code')) {
+                    postalCode = component.long_name;
+                } else if (types.includes('locality') || types.includes('administrative_area_level_3') || types.includes('administrative_area_level_2')) {
+                    district = component.long_name;
+                } else if (types.includes('administrative_area_level_1')) {
+                    state = component.long_name;
+                }
+            }
+
+            let address1 = '';
+            if (streetNumber && route) {
+                address1 = `${streetNumber} ${route}`;
+            } else if (route) {
+                address1 = route;
+            } else {
+                address1 = formattedAddress.split(',')[0] || '';
+            }
+
+            document.getElementById('address1Input').value = address1;
+            document.getElementById('address2Input').value = suburb;
+            document.getElementById('postcodeInput').value = postalCode;
+            document.getElementById('stateInput').value = state;
+
+            const knownDistricts = Object.keys(mukimsByDistrict);
+            const matchedDistrict = knownDistricts.find(d =>
+                district.toLowerCase().includes(d.toLowerCase()) ||
+                d.toLowerCase().includes(district.toLowerCase())
+            );
+
+            if (matchedDistrict) {
+                document.getElementById('districtSelect').value = matchedDistrict;
+                loadMukims(); 
+                const mukimSelect = document.getElementById('mukimSelect');
+                const mukimFound = mukimsByDistrict[matchedDistrict]?.find(m =>
+                    suburb.toLowerCase().includes(m.toLowerCase()) ||
+                    (addressComponents.some(comp => comp.types.includes('sublocality_level_1') && comp.long_name.toLowerCase().includes(m.toLowerCase())))
+                );
+                if (mukimFound) {
+                    mukimSelect.value = mukimFound;
+                }
+            } else {
+                document.getElementById('districtSelect').value = ""; 
+                loadMukims();
+            }
+        }
+
+        function showNotification(message, type) {
+            var notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'} alert-dismissible fade show`;
+            notification.style.position = 'fixed';
+            notification.style.top = '20px';
+            notification.style.right = '20px';
+            notification.style.zIndex = '9999';
+            notification.style.minWidth = '300px';
+
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(function() {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+
+            if (!query) {
+                showNotification('Please enter a search term', 'warning');
+                return;
+            }
+
+            const searchButton = document.getElementById('searchButton');
+            searchButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+            searchButton.disabled = true;
+
+            const johorBounds = new google.maps.LatLngBounds(
+                new google.maps.LatLng(1.14, 103.35),
+                new google.maps.LatLng(2.65, 104.58)  
+            );
+
+            geocoder.geocode({ 'address': query, 'bounds': johorBounds, 'region': 'my' }, (results, status) => {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        const latLng = results[0].geometry.location;
+                        map.setCenter(latLng);
+                        map.setZoom(16);
+                        placeMarker(latLng);
+                        parseAndFillAddress(results[0].address_components, results[0].formatted_address);
+                        showNotification('Location found!', 'success');
+                    } else {
+                        showNotification('No results found for your search', 'warning');
+                    }
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                    showNotification('Error performing search.', 'error');
+                }
+                searchButton.innerHTML = '<i class="fas fa-search"></i> Search';
+                searchButton.disabled = false;
+            });
+        }
+
+        function loadMukims() {
+            const districtSelect = document.getElementById('districtSelect');
+            const mukimSelect = document.getElementById('mukimSelect');
+
+            mukimSelect.innerHTML = '<option value="">Select Sub-District</option>'; 
+
+            const selectedDistrict = districtSelect.value;
+
+            if (selectedDistrict && mukimsByDistrict[selectedDistrict]) {
+                mukimSelect.style.display = 'block'; 
+
+                mukimsByDistrict[selectedDistrict].forEach(mukim => {
+                    const option = document.createElement('option');
+                    option.value = mukim;
+                    option.textContent = mukim;
+                    mukimSelect.appendChild(option);
+                });
+            } else {
+                mukimSelect.style.display = 'none'; 
+            }
+
+            const modelColArea = '@Html.Raw(Model.Location.l_ColArea)'; 
+            if (modelColArea !== '') {
+                mukimSelect.value = modelColArea;
+            }
+        }
+
+        document.getElementById('searchButton').addEventListener('click', performSearch);
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); 
+                performSearch();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMukims();
+        });
+
+    </script>
+
     @await Html.PartialAsync("_ValidationScriptsPartial")
 }
- 

@@ -1,0 +1,703 @@
+﻿@model IEnumerable<Kutip.Models.Schedule>
+
+@* Changed from MyWebApp.Models.Schedule to Kutip.Models.Schedule *@
+
+@{
+    ViewData["Title"] = "Pickup Records";
+    var searchDate = ViewBag.SearchDate as string;
+    var searchLocationAddress2 = ViewBag.SearchLocationAddress2 as string;
+    var searchStatus = ViewBag.SearchStatus as string; // Keep this for default selection
+    var uniqueLocations = ViewBag.UniqueLocations as List<string> ?? new List<string>();
+
+    // Summary metrics from ViewBag
+    var totalPickupRecords = ViewBag.TotalPickupRecords as int? ?? 0;
+    var completedPickups = ViewBag.CompletedPickups as int? ?? 0;
+    var pendingPickups = ViewBag.PendingPickups as int? ?? 0;
+    var missedPickups = ViewBag.MissedPickups as int? ?? 0;
+    var scheduledFuturePickups = ViewBag.ScheduledFuturePickups as int? ?? 0;
+
+    // Updated list of statuses for the filter dropdown (removed "In Progress")
+    var pickupStatuses = new List<string> { "Completed", "Pending", "Missed" };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Apply a consistent font family to the html element for global effect */
+        html {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+        body {
+            background-color: #f0f2f5; /* Light background color from customer page */
+        }
+
+        /* General styles for consistency across components */
+        .page-header, .table-container, .stats-card, .modal-content, .filter-card {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+
+        .action-buttons .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-right: 5px;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            color: white;
+        }
+
+        .action-buttons .btn-action:last-child {
+            margin-right: 0;
+        }
+
+        .btn-action.btn-view { background-color: #4299e1; } /* Info color */
+        .btn-action.btn-edit { background-color: #ed8936; } /* Warning color */
+        .btn-action.btn-delete { background-color: #e53e3e; } /* Danger color */
+
+        .btn-action:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        /* Avatar styles from customer page */
+        .avatar-sm {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #5a67d8); /* Primary color from customer example */
+            color: white;
+        }
+
+        /* Page Header styles from customer page */
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-title i {
+            margin-right: 15px;
+            color: #667eea; /* Primary color from customer example */
+        }
+
+        .page-subtitle {
+            color: #718096;
+            margin-bottom: 0;
+            font-size: 16px;
+        }
+
+        /* Added for button spacing */
+        .mr-2 {
+            margin-right: 0.5rem !important;
+        }
+
+        /* Stats Card Styles from customer page */
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none; /* Remove default bootstrap border */
+            border-left: none; /* Remove specific border-left */
+        }
+
+        .stats-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stats-card .card-title {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase; /* Ensure uppercase as in customer page */
+        }
+
+        .stats-card .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .stats-card .card-icon {
+            font-size: 48px;
+            color: #e2e8f0; /* Light gray for icons */
+        }
+
+        /* Specific colors for stats cards based on customer example */
+        .stats-card.primary .card-title, .stats-card.primary .card-value { color: #2d3748; }
+        .stats-card.primary .card-icon { color: #667eea; opacity: 0.5; } /* Primary color */
+
+        .stats-card.success .card-title, .stats-card.success .card-value { color: #2d3748; }
+        .stats-card.success .card-icon { color: #48bb78; opacity: 0.5; } /* Success color */
+
+        .stats-card.info .card-title, .stats-card.info .card-value { color: #2d3748; }
+        .stats-card.info .card-icon { color: #4299e1; opacity: 0.5; } /* Info color */
+
+        .stats-card.warning .card-title, .stats-card.warning .card-value { color: #2d3748; }
+        .stats-card.warning .card-icon { color: #ed8936; opacity: 0.5; } /* Warning color */
+
+        /* New colors for additional stats cards */
+        .stats-card.danger .card-title, .stats-card.danger .card-value { color: #2d3748; }
+        .stats-card.danger .card-icon { color: #e53e3e; opacity: 0.5; } /* Danger color */
+
+        .stats-card.secondary .card-title, .stats-card.secondary .card-value { color: #2d3748; }
+        .stats-card.secondary .card-icon { color: #a0aec0; opacity: 0.5; } /* Secondary/Gray color */
+
+        /* Table Container and Header Styles */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden; /* Ensures rounded corners for table */
+        }
+
+        .table-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8fafc; /* Light background for header */
+        }
+
+        .table-header h5 {
+            margin-bottom: 0;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .table-header h5 i {
+            color: #667eea; /* Primary color */
+            margin-right: 10px;
+        }
+
+        .table-actions .input-group {
+            max-width: 300px;
+        }
+
+        /* Data Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse; /* Changed from separate for simpler border control */
+        }
+
+        .data-table thead th {
+            padding: 15px 25px;
+            background-color: #f1f5f9;
+            color: #4a5568;
+            font-weight: 600;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .data-table tbody td {
+            padding: 15px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Action Buttons in Table */
+        .action-buttons .btn-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin: 0 4px;
+            transition: all 0.2s ease-in-out;
+            border: none;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .action-buttons .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0.9;
+        }
+
+        .btn-action.btn-edit { background-color: #ed8936; } /* Orange */
+        .btn-action.btn-view { background-color: #4299e1; } /* Blue */
+        .btn-action.btn-delete { background-color: #e53e3e; } /* Red */
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h5 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state .btn {
+            font-size: 16px;
+            padding: 10px 25px;
+            border-radius: 8px;
+        }
+
+        /* Filter Card Specific Styles */
+        .filter-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px; /* Space below filter card */
+        }
+
+        .filter-card .card-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-card .card-header i {
+            margin-right: 10px;
+            color: #48bb78; /* Green for filter icon */
+        }
+
+        .filter-card .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .filter-card .form-control,
+        .filter-card .form-select {
+            border-radius: 8px;
+            border-color: #e2e8f0;
+            padding: 10px 15px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Subtle inner shadow */
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .filter-card .form-control:focus,
+        .filter-card .form-select:focus {
+            border-color: #667eea; /* Primary color on focus */
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); /* Focus ring */
+            outline: none;
+        }
+
+        .filter-card .btn-primary {
+            background-color: #48bb78; /* Green for apply filters button */
+            border-color: #48bb78;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .filter-card .btn-primary:hover {
+            background-color: #38a169;
+            border-color: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+
+        /* Specific styles for Pickup Records table */
+        .pickup-status-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .pickup-status-badge.completed { background-color: #d4edda; color: #155724; } /* Green */
+        .pickup-status-badge.pending { background-color: #d1ecf1; color: #0c5460; } /* Blue */
+        .pickup-status-badge.missed { background-color: #f8d7da; color: #721c24; } /* Red */
+        .pickup-status-badge.scheduled-future { background-color: #cfe2ff; color: #052c65; } /* Light Blue */
+
+        /* Image column specific styles */
+        .data-table th.image-column,
+        .data-table td.image-column {
+            text-align: center; /* Center the content */
+            vertical-align: middle; /* Center vertically */
+        }
+
+        /* Ensure the image itself respects the small size within the centered column */
+        .data-table td.image-column img {
+            max-width: 80px; /* Constrain max width */
+            max-height: 80px; /* Constrain max height */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 4px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            display: block; /* Make it a block element to allow margin auto */
+            margin: 0 auto; /* Center the image horizontally */
+        }
+
+        /* Modal image styling */
+        .modal-body img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+}
+
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-clipboard-list me-2 text-white"></i> Pickup Records</h1>
+            <p>View and search completed bin pickup records.</p>
+        </div>
+        <div class="text-end">
+            <a href="@Url.Action("Index", "Schedule")" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Schedules
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards Row - Removed In Progress card -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card primary">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Total Pickups</div>
+                    <div class="card-value">@totalPickupRecords</div>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Completed Pickups</div>
+                    <div class="card-value">@completedPickups</div>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Pending Pickups</div>
+                    <div class="card-value">@pendingPickups</div>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card danger">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="card-title">Missed Pickups</div>
+                    <div class="card-value">@missedPickups</div>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="filter-card">
+            <div class="card-header">
+                <i class="fas fa-filter"></i> Filter Records
+            </div>
+            <form asp-action="Index" asp-controller="Pickup" method="get" class="row g-3">
+                <div class="col-12">
+                    <label for="searchDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="searchDate" name="searchDate" value="@searchDate">
+                </div>
+                <div class="col-12">
+                    <label for="searchStatus" class="form-label">Status</label>
+                    <select class="form-select" id="searchStatus" name="searchStatus">
+                        <option value="" selected="@(string.IsNullOrEmpty(searchStatus))">All Statuses</option> @* Select "All Statuses" if searchStatus is null/empty (default) *@
+                        @foreach (var status in pickupStatuses)
+                        {
+                            <option value="@status" selected="@(status == searchStatus)">@status</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label for="searchLocationAddress2" class="form-label">Location (Area)</label>
+                    <select class="form-select" id="searchLocationAddress2" name="searchLocationAddress2">
+                        <option value="">All Locations</option>
+                        @foreach (var loc in uniqueLocations)
+                        {
+                            <option value="@loc" selected="@(loc == searchLocationAddress2)">@loc</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Apply Filters
+                    </button>
+                </div>
+                <div class="col-12">
+                    <a href="@Url.Action("Index", "Pickup")" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-redo me-2"></i>Clear Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="table-container">
+            <div class="table-header">
+                <h5><i class="fas fa-table"></i> Recent Pickup Records</h5>
+                <div class="table-actions">
+                    @* Search input can be added here if needed, similar to Customer/Schedule Index *@
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="image-column">Image</th> @* Added class for styling *@
+                            <th>Plate No.</th>
+                            <th>Location (Area)</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="image-column"> @* Added class for styling *@
+                                        @if (!string.IsNullOrEmpty(item.s_ImageUrl))
+                                        {
+                                            <a href="#" class="image-popup-trigger" data-bs-toggle="modal" data-bs-target="#imageModal" data-image-url="@item.s_ImageUrl" title="View Full Image">
+                                                <img src="@item.s_ImageUrl" alt="Bin Scan" class="img-fluid">
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-image text-muted"></i> @:No Image
+                                        }
+                                    </td>
+                                    <td>@item.Bin?.b_PlateNo</td>
+                                    <td>@item.Location?.l_Address2</td>
+                                    <td>@item.s_Date.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        @{
+                                            // Re-evaluate status for display based on current item (removed In Progress logic)
+                                            string status = "";
+                                            string statusClass = "";
+                                            var today = DateTime.Today.Date;
+                                            if (item.PickedUpBins == item.TotalBins && item.TotalBins > 0)
+                                            {
+                                                status = "Completed";
+                                                statusClass = "completed";
+                                            }
+                                            else if (item.s_Date.Date == today && item.PickedUpBins == 0 && item.TotalBins > 0)
+                                            {
+                                                status = "Pending";
+                                                statusClass = "pending";
+                                            }
+                                            else if (item.s_Date.Date < today && item.PickedUpBins == 0 && item.TotalBins > 0)
+                                            {
+                                                status = "Missed";
+                                                statusClass = "missed";
+                                            }
+                                            else if (item.s_Date.Date > today)
+                                            {
+                                                status = "Scheduled (Future)";
+                                                statusClass = "scheduled-future";
+                                            }
+                                            else
+                                            {
+                                                status = "Unknown";
+                                                statusClass = "unknown";
+                                            }
+                                        }
+                                        <span class="pickup-status-badge @statusClass">
+                                            @status
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn-action btn-view view-details-trigger" data-bs-toggle="modal" data-bs-target="#pickupDetailsModal" data-schedule-id="@item.s_ID" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No pickup records found for the selected criteria.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Bin Scan Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img id="modalImage" src="/placeholder.svg" class="img-fluid" alt="Bin Scan">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pickup Details Modal -->
+<div class="modal fade" id="pickupDetailsModal" tabindex="-1" aria-labelledby="pickupDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pickupDetailsModalLabel">Pickup Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be loaded here via AJAX -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading pickup details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> @* Ensure jQuery is included for AJAX *@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Image Modal Logic
+            var imageModal = document.getElementById('imageModal');
+            imageModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var imageUrl = button.getAttribute('data-image-url');
+                var modalImage = imageModal.querySelector('#modalImage');
+                modalImage.src = imageUrl;
+            });
+
+            // Pickup Details Modal Logic
+            var pickupDetailsModal = document.getElementById('pickupDetailsModal');
+            pickupDetailsModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget; // Button that triggered the modal
+                var scheduleId = button.getAttribute('data-schedule-id');
+                var modalBody = pickupDetailsModal.querySelector('.modal-body');
+
+                // Show loading spinner
+                modalBody.innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading pickup details...</p>
+                    </div>
+                `;
+
+                // Fetch pickup details via AJAX
+                $.ajax({
+                    url: '/Pickup/Details/' + scheduleId, // Call the new Details action
+                    type: 'GET',
+                    success: function(data) {
+                        modalBody.innerHTML = data;
+                    },
+                    error: function(xhr, status, error) {
+                        modalBody.innerHTML = `<div class="alert alert-danger" role="alert">
+                                                Failed to load pickup details. Please try again.
+                                                <br/>Error: ${xhr.status} ${xhr.statusText}
+                                            </div>`;
+                        console.error("AJAX Error:", status, error, xhr);
+                    }
+                });
+            });
+
+            // Clear modal content when hidden to prevent stale data
+            pickupDetailsModal.addEventListener('hidden.bs.modal', function (event) {
+                var modalBody = pickupDetailsModal.querySelector('.modal-body');
+                modalBody.innerHTML = ''; // Clear content
+            });
+        });
+    </script>
+}

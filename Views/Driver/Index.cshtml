@@ -1,7 +1,1153 @@
-﻿@{
+﻿@model Kutip.ViewModels.DriverDashboardViewModel
+@using System.Text.Json
+
+@{
     ViewData["Title"] = "Driver Dashboard";
 }
 
-<h1>Welcome, Driver!</h1>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-<p>This is your personalized dashboard.</p>
+<style>
+    :root {
+        --kutip-primary: rgb(17, 162, 136);
+        --kutip-secondary: rgb(118, 215, 189);
+        --kutip-success: #059669;
+        --kutip-danger: #dc2626;
+        --kutip-warning: #d97706;
+        --kutip-info: #0891b2;
+        --kutip-light: #f8fafc;
+        --kutip-dark: #1e293b;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --border-radius: 8px;
+        --transition: all 0.2s ease-in-out;
+        --driver-primary-dark: #4e73df;
+        --driver-primary-light: #e0e7fa;
+        --driver-primary-icon: #3a5bbd;
+        --driver-success-dark: #1cc88a;
+        --driver-success-light: #d4f5e9;
+        --driver-success-icon: #159a6a;
+        --driver-warning-dark: #f6c23e;
+        --driver-warning-light: #fdf2d9;
+        --driver-warning-icon: #c29b31;
+        --driver-info-dark: #36b9cc;
+        --driver-info-light: #d8f3f7;
+        --driver-info-icon: #2a92a0;
+    }
+
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: #f1f5f9;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        overflow-x: hidden;
+        min-width: 320px;
+    }
+
+    .dashboard-container {
+        margin: 0 auto;
+        padding: 0.5rem;
+        width: 100%;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--kutip-primary) 0%,rgb(78, 222, 208) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+        .dashboard-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .dashboard-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+
+    .filter-section {
+        background: white;
+        padding: 0.75rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 1rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* CARD GRID - DEFAULT 1 COLUMN */
+    .status-cards-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* LAPTOPS ONLY - 4 COLUMNS */
+    @@media (min-width: 992px) {
+        .status-cards-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .status-card {
+        background: white;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        min-width: 0;
+    }
+
+    .card-text-content {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .metric-icon-wrapper {
+        width: 3.5rem;
+        height: 3.5rem;
+        border-radius: 50%; /* Perfect circle */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 1rem;
+        flex-shrink: 0;
+        position: relative; /* For absolute positioning of icon */
+    }
+
+    .metric-icon {
+        font-size: 1.8rem;
+        width: 100%; /* Fill container */
+        height: 100%; /* Fill container */
+        display: flex;
+        opacity: 1;
+        align-items: center;
+        justify-content: center;
+        position: absolute; /* Perfect centering */
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+    }
+
+    /* For even better visual balance */
+    .status-card.primary-driver .metric-icon-wrapper {
+        padding: 0.5rem; /* Adjust if needed */
+        background-color: var(--driver-primary-light);
+    }
+
+    .status-card.success-driver .metric-icon-wrapper {
+        background-color: var(--driver-success-light);
+        padding: 0.5rem;
+    }
+
+    .status-card.warning-driver .metric-icon-wrapper {
+        background-color: var(--driver-warning-light);
+        padding: 0.5rem;
+    }
+
+    .status-card.info-driver .metric-icon-wrapper {
+        background-color: var(--driver-info-light);
+        padding: 0.5rem;
+    }
+
+
+    .status-card.primary-driver .metric-icon {
+        padding: 0.8rem;
+        color: var(--driver-primary-icon);
+    }
+
+    .status-card.success-driver .metric-icon {
+        color: var(--driver-success-icon);
+    }
+
+    .status-card.warning-driver .metric-icon {
+        color: var(--driver-warning-icon);
+    }
+
+    .status-card.info-driver .metric-icon {
+        color: var(--driver-info-icon);
+    }
+
+    .status-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .status-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--kutip-dark);
+        margin-bottom: 0.25rem;
+        line-height: 1;
+    }
+
+    .status-label {
+        color: var(--kutip-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    .charts-section {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 0.75rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .chart-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--kutip-dark);
+        margin: 0;
+    }
+
+    .download-btn {
+        background: var(--kutip-success);
+        color: white;
+        border: none;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+
+        .download-btn:hover {
+            background: #047857;
+        }
+
+    .bottom-section {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .activity-section {
+        background: white;
+        padding: 0.6rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+    }
+
+    .activity-list {
+        overflow-y: auto;
+        margin-top: 0.5rem;
+    }
+
+    .activity-item {
+        padding: 0.5rem;
+        border-left: 3px solid #e2e8f0;
+        margin-bottom: 0.4rem;
+        background: #f8fafc;
+        border-radius: 0 4px 4px 0;
+        font-size: 0.8rem;
+        word-break: break-word;
+    }
+
+        .activity-item.completed {
+            border-left-color: var(--kutip-success);
+        }
+
+        .activity-item.partial {
+            border-left-color: var(--kutip-warning);
+        }
+
+        .activity-item.missed {
+            border-left-color: var(--kutip-danger);
+        }
+
+        .activity-item.pending {
+            border-left-color: var(--kutip-secondary);
+        }
+
+    .quick-actions {
+        background: white;
+        padding: 0.4rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #e2e8f0;
+    }
+
+    .action-btn {
+        display: block;
+        width: 100%;
+        padding: 0.4rem;
+        margin-bottom: 0.2rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-decoration: none;
+        text-align: center;
+        transition: var(--transition);
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-success {
+        background: var(--kutip-success);
+        color: white;
+    }
+
+    .btn-info {
+        background: var(--kutip-info);
+        color: white;
+    }
+
+    .btn-warning {
+        background: var(--kutip-warning);
+        color: white;
+    }
+
+    .btn-primary {
+        background: var(--kutip-primary);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #047857;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #0e7490;
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background: #b45309;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .form-control, .form-select {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        width: 100%;
+    }
+
+    @@media (max-width: 767px) {
+        input, select, textarea {
+            font-size: 16px;
+        }
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--kutip-primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        outline: none;
+    }
+
+    .btn {
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: var(--kutip-primary);
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+    .btn-download-csv {
+        background: var(--kutip-success);
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+        margin-left: 0.4rem;
+    }
+
+        .btn-download-csv:hover {
+            background: #047857;
+            color: white;
+        }
+
+    .status-badge {
+        padding: 0.2rem 0.4rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-secondary {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    .system-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.3rem 0;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+    .stat-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--kutip-primary);
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--kutip-dark);
+        font-weight: 500;
+    }
+
+    .chart-canvas {
+        max-height: 180px;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 180px;
+    }
+
+    /* Large devices (laptops/desktops, 992px and up) */
+    @@media (min-width: 992px) {
+        .dashboard-container {
+            max-width: 1200px;
+        }
+
+        .charts-section {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .bottom-section {
+            grid-template-columns: 2fr 1fr;
+        }
+
+        .quick-actions {
+            padding: 1rem;
+        }
+    }
+
+    /* Medium devices (landscape tablets, 768px - 991px) */
+    @@media (min-width: 768px) and (max-width: 991px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+
+        .charts-section {
+            grid-template-columns: 1fr;
+        }
+
+        .bottom-section {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-actions .d-flex {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .quick-actions .action-btn {
+            width: calc(50% - 0.5rem);
+        }
+    }
+
+    /* Small devices (portrait tablets and large phones, 576px - 767px) */
+    @@media (min-width: 576px) and (max-width: 767px) {
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+        }
+
+        .metric-icon-wrapper {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .metric-icon {
+            font-size: 1.2rem;
+        }
+
+        .filter-section .row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-section .col-md-3 {
+            width: 100%;
+        }
+
+        .quick-actions .d-flex {
+            flex-direction: column;
+        }
+
+        .quick-actions .action-btn {
+            width: 100%;
+        }
+    }
+
+    /* Extra small devices (phones, less than 576px) */
+    @@media (max-width: 575px) {
+        .dashboard-header {
+            padding: 1rem;
+        }
+
+            .dashboard-header h1 {
+                font-size: 1.25rem;
+            }
+
+        .status-card {
+            padding: 0.75rem;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+        }
+
+        .metric-icon-wrapper {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .metric-icon {
+            font-size: 1.2rem;
+        }
+
+        .filter-section .row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-section .col-md-3 {
+            width: 100%;
+        }
+
+        .filter-section .btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .chart-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .quick-actions {
+            padding: 0.75rem;
+        }
+
+            .quick-actions .d-flex {
+                flex-direction: column;
+            }
+
+            .quick-actions .action-btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+        .activity-item {
+            padding: 0.75rem;
+        }
+
+            .activity-item .d-flex {
+                flex-direction: column;
+            }
+
+        .status-badge {
+            margin-top: 0.5rem;
+            align-self: flex-start;
+        }
+    }
+
+    /* iPhone 5/SE specific adjustments (320px) */
+    @@media (max-width: 320px) {
+        .dashboard-header h1 {
+            font-size: 1.1rem;
+        }
+
+        .status-label {
+            font-size: 0.65rem;
+        }
+
+        .status-value {
+            font-size: 1.25rem;
+        }
+
+        .chart-title {
+            font-size: 0.8rem;
+        }
+
+        .activity-item {
+            font-size: 0.7rem;
+            padding: 0.5rem;
+        }
+
+        .metric-icon-wrapper {
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .metric-icon {
+            font-size: 1rem;
+        }
+    }
+
+    /* Print styles */
+    @@media print {
+        body {
+            background-color: #fff !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        .dashboard-header,
+        .filter-section,
+        .status-cards-grid,
+        .charts-section,
+        .quick-actions,
+        footer {
+            display: none !important;
+        }
+
+        .dashboard-container {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+
+        .activity-section {
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        .activity-list {
+            overflow: visible !important;
+            margin-top: 0 !important;
+        }
+
+        .activity-item {
+            border: 1px solid #eee !important;
+            margin-bottom: 0.5rem !important;
+            padding: 0.75rem !important;
+            background: #fff !important;
+            border-radius: 4px !important;
+            page-break-inside: avoid;
+        }
+
+            .activity-item .fw-semibold {
+                font-size: 1rem !important;
+                color: #333 !important;
+            }
+
+            .activity-item .text-muted.small {
+                font-size: 0.75rem !important;
+                color: #666 !important;
+            }
+
+        .status-badge {
+            display: inline-block !important;
+            padding: 0.2rem 0.5rem !important;
+            font-size: 0.65rem !important;
+            border-radius: 8px !important;
+            white-space: nowrap;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-truck me-2"></i>Driver Dashboard</h1>
+                <p>Manage your delivery routes and schedules.</p>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-light text-dark">
+                    <i class="fas fa-calendar me-1"></i>
+                    @DateTime.Now.ToString("MMM dd, yyyy")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-section">
+        <form method="get" class="row g-3 align-items-end">
+            <input type="hidden" name="period" value="custom" />
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Start Date</label>
+                <input type="date" name="startDate" class="form-control" value="@Model.FilterStartDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">End Date</label>
+                <input type="date" name="endDate" class="form-control" value="@Model.FilterEndDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3 d-flex flex-wrap gap-2 align-items-end">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="fas fa-filter me-1"></i>Apply
+                </button>
+                <a href="@Url.Action("DownloadDriverReport", new { period = Model.SelectedPeriod, startDate = Model.FilterStartDate, endDate = Model.FilterEndDate })"
+                   class="btn btn-success flex-grow-1">
+                    <i class="fas fa-download me-1"></i>CSV
+                </a>
+                <button type="button" class="btn btn-success flex-grow-1" onclick="downloadDashboardPNG()">
+                    <i class="fas fa-image me-1"></i>PNG
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="status-cards-grid">
+        <div class="status-card primary-driver">
+            <div class="card-text-content">
+                <div class="status-value">@Model.TodaySchedules.Count</div>
+                <div class="status-label">Today's Schedules</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-calendar-day metric-icon"></i>
+            </div>
+        </div>
+
+        <div class="status-card success-driver">
+            <div class="card-text-content">
+                <div class="status-value">@Model.CompletedToday</div>
+                <div class="status-label">Completed Today</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-check-circle metric-icon"></i>
+            </div>
+        </div>
+
+        <div class="status-card warning-driver">
+            <div class="card-text-content">
+                <div class="status-value">@Model.PendingToday</div>
+                <div class="status-label">Pending Today</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-clock metric-icon"></i>
+            </div>
+        </div>
+
+        <div class="status-card info-driver">
+            <div class="card-text-content">
+                <div class="status-value">@Model.TotalSchedulesToday</div>
+                <div class="status-label">Total Schedules</div>
+            </div>
+            <div class="metric-icon-wrapper">
+                <i class="fas fa-route metric-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="charts-section">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-chart-bar me-2"></i>Driver Efficiency Trends</h3>
+                <button class="download-btn" onclick="downloadChart('driverEfficiencyChart', 'driver-efficiency-trends')">
+                    <i class="fas fa-download me-1"></i>PNG
+                </button>
+            </div>
+            <canvas id="driverEfficiencyChart" class="chart-canvas"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-road me-2"></i>Total Distance Driven</h3>
+                <button class="download-btn" onclick="downloadChart('driverDistanceChart', 'driver-distance-driven')">
+                    <i class="fas fa-download me-1"></i>PNG
+                </button>
+            </div>
+            <canvas id="driverDistanceChart" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3 class="chart-title"><i class="fas fa-chart-pie me-2"></i>Driver Performance Metrics</h3>
+                <button class="download-btn" onclick="downloadChart('driverPerformanceMetrics', 'driver-performance-metrics')">
+                    <i class="fas fa-download me-1"></i>PNG
+                </button>
+            </div>
+            <div class="system-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Total Trips Completed</div>
+                    <div class="stat-value">@Model.TotalTripsCompleted</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Avg. Bins per Trip</div>
+                    <div class="stat-value">@Model.AverageBinsPerTrip.ToString("F1")</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">On-Time Performance</div>
+                    <div class="stat-value">@Model.OnTimePerformance.ToString("F1")%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Total Distance Driven</div>
+                    <div class="stat-value">@Model.TotalDistanceDriven.ToString("F0") km</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container my-4">
+            <div class="quick-actions p-4 bg-light rounded shadow-sm">
+                <h3 class="chart-title mb-4 d-flex align-items-center">
+                    <i class="fas fa-bolt me-2 text-warning"></i> Quick Actions
+                </h3>
+                <div class="d-flex flex-wrap gap-3">
+                    <a asp-action="MySchedules" class="action-btn btn btn-primary d-flex align-items-center" aria-label="View all schedules">
+                        <i class="fas fa-list me-2"></i> All Schedules
+                    </a>
+                    <a a asp-action="RoutePlan" asp-controller="Bin" class="action-btn btn btn-success d-flex align-items-center" aria-label="Optimize routes">
+                        <i class="fas fa-route me-2"></i> Route Optimization
+                    </a>
+                    <button type="button" class="action-btn btn btn-info d-flex align-items-center" onclick="printTodaySchedule()" aria-label="Print today's schedule">
+                        <i class="fas fa-print me-2"></i> Print Schedule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-section">
+        <div class="activity-section">
+            <h3 class="chart-title"><i class="fas fa-clock me-2"></i>Today's Schedule</h3>
+            <div class="activity-list">
+                @if (Model.TodaySchedules.Any())
+                {
+                    @foreach (var schedule in Model.TodaySchedules)
+                    {
+                        string statusClass, statusText, badgeClass;
+
+                        if (schedule.PickedUpBins == schedule.TotalBins && schedule.TotalBins > 0)
+                        {
+                            statusClass = "completed";
+                            statusText = "Completed";
+                            badgeClass = "badge-success";
+                        }
+                        else if (schedule.PickedUpBins > 0 && schedule.PickedUpBins < schedule.TotalBins)
+                        {
+                            statusClass = "partial";
+                            statusText = "Partial";
+                            badgeClass = "badge-warning";
+                        }
+                        else if (schedule.PickedUpBins < schedule.TotalBins && schedule.s_Date.Date <= DateTime.Today)
+                        {
+                            statusClass = "missed";
+                            statusText = "Missed";
+                            badgeClass = "badge-danger";
+                        }
+                        else
+                        {
+                            statusClass = "pending";
+                            statusText = "Pending";
+                            badgeClass = "badge-secondary";
+                        }
+
+                        <div class="activity-item @statusClass">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="fw-semibold">@(schedule.Bin?.Customer?.c_Name ?? "N/A")</div>
+                                    <div class="text-muted small">@schedule.Location?.l_Address1, @schedule.Location?.l_District</div>
+                                    <div class="text-muted small mt-1">
+                                        <i class="fas fa-calendar me-1"></i>@schedule.s_Date.ToString("MMM dd")
+                                        <span class="ms-2">
+                                            <i class="fas fa-trash me-1"></i>@schedule.PickedUpBins/@schedule.TotalBins bins
+                                        </span>
+                                    </div>
+                                </div>
+                                <span class="status-badge @badgeClass">@statusText</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-calendar-check fa-3x text-gray-300 mb-3"></i>
+                        <p>No schedules for today.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    // Mobile detection and layout adjustment
+    function checkIfMobile() {
+        const isMobile = window.innerWidth <= 575;
+        if (isMobile) {
+            document.body.classList.add('mobile-view');
+        } else {
+            document.body.classList.remove('mobile-view');
+        }
+    }
+
+    window.addEventListener('load', checkIfMobile);
+    window.addEventListener('resize', checkIfMobile);
+
+    // Chart data and initialization
+    const driverEfficiencyData = @Html.Raw(JsonSerializer.Serialize(Model.DriverEfficiencyTrendData));
+    const driverDistanceData = @Html.Raw(JsonSerializer.Serialize(Model.DriverDistanceTrendData));
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: { size: 12 }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { font: { size: 11 } },
+                grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            x: {
+                ticks: { font: { size: 11 } },
+                grid: { display: false }
+            }
+        }
+    };
+
+    if (driverEfficiencyData && driverEfficiencyData.length > 0) {
+        const ctx = document.getElementById("driverEfficiencyChart").getContext("2d");
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: driverEfficiencyData.map(d => d.Label),
+                datasets: [{
+                    label: 'Efficiency %',
+                    data: driverEfficiencyData.map(d => d.Value),
+                    backgroundColor: 'rgba(78, 115, 223, 0.2)',
+                    borderColor: '#4e73df',
+                    borderWidth: 1,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#4e73df',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                ...chartOptions,
+                plugins: { ...chartOptions.plugins, legend: { display: false } },
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        max: 100,
+                        ticks: {
+                            ...chartOptions.scales.y.ticks,
+                            callback: value => value + '%'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    if (driverDistanceData && driverDistanceData.length > 0) {
+        const ctx = document.getElementById("driverDistanceChart").getContext("2d");
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: driverDistanceData.map(d => d.Label),
+                datasets: [{
+                    label: 'Distance (km)',
+                    data: driverDistanceData.map(d => d.Value),
+                    borderColor: '#36b9cc',
+                    backgroundColor: 'rgba(54, 185, 204, 0.2)',
+                    borderWidth: 1,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#36b9cc',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                ...chartOptions,
+                plugins: { ...chartOptions.plugins, legend: { display: false } },
+                scales: {
+                    ...chartOptions.scales,
+                    y: {
+                        ...chartOptions.scales.y,
+                        ticks: {
+                            ...chartOptions.scales.y.ticks,
+                            callback: value => value + ' km'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function downloadChart(chartId, filename) {
+        const canvas = document.getElementById(chartId);
+        const url = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${filename}-${new Date().toISOString().split("T")[0]}.png`;
+        link.click();
+    }
+
+    function downloadDashboardPNG() {
+        const dashboard = document.querySelector(".dashboard-container");
+        html2canvas(dashboard, {
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#f1f5f9',
+            width: dashboard.scrollWidth,
+            height: dashboard.scrollHeight
+        }).then(canvas => {
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'kutip-driver-dashboard-' + new Date().toISOString().split('T')[0] + '.png';
+            link.href = url;
+            link.click();
+        }).catch(error => {
+            console.error('Dashboard PNG error:', error);
+            alert('Failed to download dashboard image.');
+        });
+    }
+
+    function printTodaySchedule() {
+        window.print();
+    }
+
+    const startInput = document.querySelector('[name="startDate"]');
+    const endInput = document.querySelector('[name="endDate"]');
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+    function validateDateRange() {
+        const start = new Date(startInput.value);
+        const end = new Date(endInput.value);
+
+        if (start > end) {
+            submitBtn.disabled = true;
+            submitBtn.title = "End date must be after or equal to start date.";
+            submitBtn.classList.add("disabled");
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.title = "";
+            submitBtn.classList.remove("disabled");
+        }
+    }
+
+    startInput.addEventListener("change", validateDateRange);
+    endInput.addEventListener("change", validateDateRange);
+    document.addEventListener("DOMContentLoaded", validateDateRange);
+</script>

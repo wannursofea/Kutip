@@ -1,161 +1,210 @@
-﻿@model Kutip.Models.Schedule
+@model Kutip.Models.Schedule
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Schedule";
 }
 
-@* Add Font Awesome for icons *@
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .field-validation-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
 
-<style>
-    .schedule-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
+        .input-validation-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.1) !important;
+        }
 
-    .schedule-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        padding: 0;
-        margin-top: 1.5rem;
-    }
+        .validation-summary-errors {
+            color: #dc3545;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #dc3545;
+            border-radius: 0.375rem;
+            background-color: rgba(220, 53, 69, 0.05);
+        }
 
-    .card-header {
-        background: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
-        padding: 1.5rem;
-        border-radius: 8px 8px 0 0;
-    }
+            .validation-summary-errors ul {
+                margin-bottom: 0;
+                padding-left: 1.5rem;
+            }
 
-    .card-body {
-        padding: 1.5rem;
-    }
+        .text-danger {
+            color: #dc3545;
+        }
 
-    .card-footer {
-        background: #f9fafb;
-        border-top: 1px solid #e5e7eb;
-        padding: 1rem 1.5rem;
-        border-radius: 0 0 8px 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+        .schedule-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
 
-    .form-label {
-        font-weight: 500;
-        color: #374151;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
+        .schedule-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 0;
+            margin-top: 1.5rem;
+        }
 
-        .form-label i {
+        .card-header {
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-footer {
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+            padding: 1rem 1.5rem;
+            border-radius: 0 0 8px 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .form-label i {
+                color: #6b7280;
+                font-size: 0.875rem;
+                width: 16px;
+                text-align: center;
+            }
+
+        .form-control {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+            .form-control:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                outline: none;
+            }
+
+            .form-control.is-invalid {
+                border-color: #dc3545;
+                box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+            }
+
+        .btn-create {
+            background-color: #000;
+            border-color: #000;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+            .btn-create:hover {
+                background-color: #1f2937;
+                border-color: #1f2937;
+            }
+
+        .btn-secondary {
+            background-color: #6b7280;
+            border-color: #6b7280;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-outline:hover {
+                background-color: #f3f4f6;
+                text-decoration: none;
+                color: #374151;
+            }
+
+        .page-title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
             color: #6b7280;
             font-size: 0.875rem;
-            width: 16px;
-            text-align: center;
+            margin-bottom: 0;
         }
 
-    .form-control {
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        padding: 0.75rem;
-        font-size: 0.875rem;
-    }
-
-        .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            outline: none;
+        .validation-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
         }
 
-        .form-control.is-invalid {
-            border-color: #dc3545;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        .time-pair {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            gap: 10px; 
         }
 
-    .btn-create {
-        background-color: #000;
-        border-color: #000;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 6px;
-        font-weight: 500;
-    }
+            .time-pair label {
+                margin-right: 5px;
+            }
 
-        .btn-create:hover {
-            background-color: #1f2937;
-            border-color: #1f2937;
+        .bin-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            gap: 10px; 
         }
 
-    .btn-secondary {
-        background-color: #6b7280;
-        border-color: #6b7280;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-    .btn-outline {
-        background-color: transparent;
-        border: 1px solid #d1d5db;
-        color: #374151;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-        .btn-outline:hover {
-            background-color: #f3f4f6;
-            text-decoration: none;
-            color: #374151;
-        }
-
-    .page-title {
-        font-size: 1.875rem;
-        font-weight: bold;
-        color: #111827;
-        margin-bottom: 0.5rem;
-    }
-
-    .page-subtitle {
-        color: #6b7280;
-        margin-bottom: 0;
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #111827;
-        margin-bottom: 0.5rem;
-    }
-
-    .section-subtitle {
-        color: #6b7280;
-        font-size: 0.875rem;
-        margin-bottom: 0;
-    }
-
-    .validation-error {
-        color: #dc3545;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-        display: block;
-    }
-</style>
+            .bin-row label {
+                margin-right: 5px;
+            }
+    </style>
+}
 
 <div class="schedule-container">
-    <h1 class="page-title">Create Schedule</h1>
-    <p class="page-subtitle">Add a new pickup schedule to the system</p>
 
-    @* Display Success Message *@
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
@@ -164,7 +213,6 @@
         </div>
     }
 
-    @* Display Error Message *@
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 1rem;">
@@ -175,40 +223,86 @@
 
     <div class="schedule-card">
         <div class="card-header">
-            <h3 class="section-title">Schedule Details</h3>
+            <h3 class="section-title">Create New Schedule</h3>
             <p class="section-subtitle">Enter the pickup date, time window, and location information</p>
         </div>
 
         <div class="card-body">
-            <form asp-action="Create" id="scheduleForm">
-                @* The validation summary will show model state errors *@
+            <form asp-action="Create" id="scheduleForm" onsubmit="return validateForm()">
                 <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                @* Row 1: Pickup Date and Location *@
                 <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label asp-for="s_Date" class="form-label">
-                            <i class="fas fa-calendar-alt"></i>
-                            Pickup Date
+                    <div class="col-md-4">
+                        <label asp-for="AssignedUser_ID" class="form-label">
+                            <i class="fas fa-user"></i>
+                            Assigned Driver
                         </label>
-                        <input asp-for="s_Date" type="date" class="form-control" />
-                        <span asp-validation-for="s_Date" class="text-danger"></span>
+                        <select asp-for="AssignedUser_ID" class="form-control" asp-items="ViewBag.AssignedUsers" required id="AssignedUser_ID">
+                            <option value="">Select a driver</option>
+                        </select>
+                        <span asp-validation-for="AssignedUser_ID" class="text-danger"></span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label asp-for="l_ID" class="form-label">
                             <i class="fas fa-map-marker-alt"></i>
                             Location
                         </label>
-                        <select asp-for="l_ID" class="form-control" asp-items="ViewBag.l_ID">
+                        <select asp-for="l_ID" class="form-control" asp-items="ViewBag.l_ID" id="locationDropdown" onchange="loadBinsForLocation()">
                             <option value="">Select a location</option>
                         </select>
                         <span asp-validation-for="l_ID" class="text-danger"></span>
                     </div>
+                    <div class="col-md-4">
+                        <label asp-for="t_ID" class="form-label">
+                            <i class="fas fa-truck"></i>
+                            Assigned Truck
+                        </label>
+                        <select asp-for="t_ID" class="form-control" asp-items="ViewBag.Trucks" required id="t_ID">
+                            <option value="">Select a truck</option>
+                        </select>
+                        <span asp-validation-for="t_ID" class="text-danger"></span>
+                    </div>
                 </div>
 
-                @* Row 2: Start Time and End Time *@
                 <div class="row mb-4">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar"></i>
+                            Month
+                        </label>
+                        <select name="selectedMonth" class="form-control" required>
+                            <option value="">Select Month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-day"></i>
+                            Day of Week
+                        </label>
+                        <select name="selectedDayOfWeek" class="form-control" required>
+                            <option value="">Select Day</option>
+                            <option value="0">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <label asp-for="s_PickupTime" class="form-label">
                             <i class="fas fa-clock"></i>
                             Start Time
@@ -216,7 +310,7 @@
                         <input asp-for="s_PickupTime" type="time" class="form-control" id="startTime" onchange="validateTimes()" />
                         <span asp-validation-for="s_PickupTime" class="text-danger"></span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label asp-for="s_PickupEnd" class="form-label">
                             <i class="fas fa-clock"></i>
                             End Time
@@ -227,34 +321,15 @@
                     </div>
                 </div>
 
-                @* Row 3: Picked Up Bins and Total Bins *@
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label asp-for="PickedUpBins" class="form-label">
-                            <i class="fas fa-box"></i>
-                            Picked Up Bins
-                        </label>
-                        <input asp-for="PickedUpBins" type="number" class="form-control" min="0" value="0" step="1"
-                               id="pickedUpBins"
-                               oninput="this.value = Math.max(0, parseInt(this.value) || 0); validateBins()"
-                               onchange="validateBins()" />
-                        <span asp-validation-for="PickedUpBins" class="text-danger"></span>
-                        <span id="binsValidationError" class="validation-error" style="display: none;">Picked up bins cannot exceed total bins</span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="TotalBins" class="form-label">
-                            <i class="fas fa-boxes"></i>
-                            Total Bins
-                        </label>
-                        <input asp-for="TotalBins" type="number" class="form-control" min="0" value="0" step="1"
-                               id="totalBins"
-                               oninput="this.value = Math.max(0, parseInt(this.value) || 0); validateBins()"
-                               onchange="validateBins()" />
-                        <span asp-validation-for="TotalBins" class="text-danger"></span>
+                <div class="mb-4">
+                    <label class="form-label">
+                        <i class="fas fa-trash-alt"></i>
+                        Bins
+                    </label>
+                    <div id="binsContainer">
                     </div>
                 </div>
 
-                @* Create Schedule Button *@
                 <div class="mb-3">
                     <button type="submit" class="btn btn-create" id="submitBtn">Create Schedule</button>
                 </div>
@@ -262,89 +337,123 @@
         </div>
 
         <div class="card-footer">
-            <a asp-action="Index" class="btn-outline">Cancel</a>
+            <a asp-action="Index" class="btn-outline">Back to List</a>
             <button type="button" class="btn-outline" onclick="resetForm()">Reset Form</button>
         </div>
     </div>
 </div>
 
-<script>
-    function validateBins() {
-        const pickedUpBins = parseInt(document.getElementById('pickedUpBins').value) || 0;
-        const totalBins = parseInt(document.getElementById('totalBins').value) || 0;
-        const errorSpan = document.getElementById('binsValidationError');
-        const pickedUpInput = document.getElementById('pickedUpBins');
-
-        if (pickedUpBins > totalBins && totalBins > 0) {
-            errorSpan.style.display = 'block';
-            pickedUpInput.classList.add('is-invalid');
-            return false;
-        } else {
-            errorSpan.style.display = 'none';
-            pickedUpInput.classList.remove('is-invalid');
-            return true;
-        }
-    }
-
-    function validateTimes() {
-        const startTime = document.getElementById('startTime').value;
-        const endTime = document.getElementById('endTime').value;
-        const errorSpan = document.getElementById('timeValidationError');
-        const endTimeInput = document.getElementById('endTime');
-
-        if (startTime && endTime) {
-            if (endTime <= startTime) {
-                errorSpan.style.display = 'block';
-                endTimeInput.classList.add('is-invalid');
-                return false;
-            } else {
-                errorSpan.style.display = 'none';
-                endTimeInput.classList.remove('is-invalid');
-                return true;
-            }
-        }
-        return true;
-    }
-
-    function validateForm() {
-        const binsValid = validateBins();
-        const timesValid = validateTimes();
-        return binsValid && timesValid;
-    }
-
-    // Add form submission validation
-    document.getElementById('scheduleForm').addEventListener('submit', function(e) {
-        if (!validateForm()) {
-            e.preventDefault();
-            return false;
-        }
-    });
-
-    function resetForm() {
-        document.getElementById('scheduleForm').reset();
-
-        // Set bin fields back to 0 after reset
-        document.querySelector('input[name="PickedUpBins"]').value = '0';
-        document.querySelector('input[name="TotalBins"]').value = '0';
-
-        // Clear custom validation messages and styles
-        document.getElementById('binsValidationError').style.display = 'none';
-        document.getElementById('timeValidationError').style.display = 'none';
-        document.getElementById('pickedUpBins').classList.remove('is-invalid');
-        document.getElementById('endTime').classList.remove('is-invalid');
-
-        // Clear any validation messages
-        var validationSpans = document.querySelectorAll('.text-danger');
-        validationSpans.forEach(function(span) {
-            if (span.getAttribute('data-valmsg-for')) {
-                span.textContent = '';
-            }
-        });
-    }
-</script>
-
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadBinsForLocation();
+        });
+
+        function loadBinsForLocation() {
+            const locationId = document.getElementById('locationDropdown').value;
+            const binsContainer = document.getElementById('binsContainer');
+
+            binsContainer.innerHTML = '';
+
+            if (locationId) {
+                fetch(`/Schedule/GetBinsForLocation?locationId=${locationId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.bins && data.bins.length > 0) {
+                            data.bins.forEach(bin => {
+                                const binRow = document.createElement('div');
+                                binRow.classList.add('bin-row');
+                                binRow.innerHTML = `
+                                    <label>${bin.b_PlateNo}</label>
+                                    <input type="hidden" name="BinIDs" value="${bin.b_ID}" />
+                                `;
+                                binsContainer.appendChild(binRow);
+                            });
+                        } else {
+                            binsContainer.innerHTML = '<p>No bins found for this location.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading bins:', error);
+                        binsContainer.innerHTML = '<p>Error loading bins.</p>';
+                    });
+            } else {
+                binsContainer.innerHTML = '<p>Please select a location to load bins.</p>';
+            }
+        }
+
+        function validateTimes() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const errorSpan = document.getElementById('timeValidationError');
+            const endTimeInput = document.getElementById('endTime');
+
+            if (startTime && endTime) {
+                if (endTime <= startTime) {
+                    errorSpan.style.display = 'block';
+                    endTimeInput.classList.add('is-invalid');
+                    return false;
+                } else {
+                    errorSpan.style.display = 'none';
+                    endTimeInput.classList.remove('is-invalid');
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        function validateForm() {
+            let isValid = true;
+
+            const assignedUser = document.getElementById('AssignedUser_ID');
+            const location = document.getElementById('locationDropdown');
+            const selectedMonth = document.querySelector('select[name="selectedMonth"]');
+            const selectedDayOfWeek = document.querySelector('select[name="selectedDayOfWeek"]');
+            const assignedTruck = document.getElementById('t_ID');
+
+            function validateField(element) {
+                if (!element.value) {
+                    element.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    element.classList.remove('is-invalid');
+                }
+            }
+
+            validateField(assignedUser);
+            validateField(location);
+            validateField(selectedMonth);
+            validateField(selectedDayOfWeek);
+            validateField(assignedTruck);
+
+            if (!validateTimes()) {
+                isValid = false;
+            }
+
+            const binsContainer = document.getElementById('binsContainer');
+            if (location.value && binsContainer.children.length === 0) {
+                alert('Please select a location with available bins.');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function resetForm() {
+            document.getElementById('scheduleForm').reset();
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            document.querySelectorAll('.validation-error').forEach(el => el.style.display = 'none');
+            document.getElementById('binsContainer').innerHTML = ''; 
+            loadBinsForLocation();
+        }
+
+        document.getElementById('AssignedUser_ID').addEventListener('change', () => validateForm());
+        document.getElementById('locationDropdown').addEventListener('change', () => validateForm());
+        document.querySelector('select[name="selectedMonth"]').addEventListener('change', () => validateForm());
+        document.querySelector('select[name="selectedDayOfWeek"]').addEventListener('change', () => validateForm());
+        document.getElementById('t_ID').addEventListener('change', () => validateForm());
+    </script>
 }

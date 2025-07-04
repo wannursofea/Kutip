@@ -1,16 +1,35 @@
-﻿@* NI TAKDE PON NYAH!! DELETE *@
 @{
-    ViewData["Title"] = "Welcome to Kutip! BETUL KE NI ADE HAHA";
-    Layout = "~/Views/Shared/_SimpleLayout.cshtml";
+    ViewData["Title"] = "Pickup & Ease";
+    Layout = "_SimpleLayout";
 }
 
-<div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
-    <div class="text-center p-5 border rounded shadow-lg bg-white">
-        <h1 class="display-4 mb-4">Welcome to Kutip!</h1>
-        <p class="lead mb-5">Please log in to continue.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
 
-        <div class="d-grid gap-3 col-6 mx-auto">
-            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg">Login</a>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-section">
+                <i class="fas fa-recycle logo-icon"></i>
+                <h1 class="brand-name">Pickup & Ease</h1>
+            </div>
+            <h2 class="login-title">Welcome to Pickup & Ease!</h2>
+            <p class="login-subtitle">Please log in to continue.</p>
+        </div>
+
+        <div class="login-body">
+            <div class="d-grid gap-3 mx-auto">
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </a>
+            </div>
+        </div>
+
+        <div class="login-footer">
+            <p>&copy; @DateTime.Now.Year Pickup & Ease. All rights reserved.</p>
         </div>
     </div>
 </div>

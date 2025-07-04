@@ -1,21 +1,58 @@
-﻿@page
+@page
 @model LogoutModel
 @{
     ViewData["Title"] = "Log out";
 }
 
-<header>
-    <h1>@ViewData["Title"]</h1>
-    @{
-        if (User.Identity?.IsAuthenticated ?? false)
-        {
-            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Click here to Logout</button>
-            </form>
-        }
-        else
-        {
-            <p>You have successfully logged out of the application.</p>
-        }
-    }
-</header>
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo-section">
+                <i class="fas fa-recycle logo-icon"></i>
+                <h1 class="brand-name">KUTIP</h1>
+            </div>
+            <h2 class="login-title">Sign Out</h2>
+        </div>
+
+        <div class="login-body">
+            @{
+                if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <div class="logout-content">
+                        <p class="login-subtitle">Are you sure you want to sign out of your account?</p>
+                        
+                        <form class="logout-form" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+                            <button type="submit" class="btn btn-primary btn-login">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Yes, Sign Out
+                            </button>
+                            <a href="javascript:history.back()" class="link-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Cancel
+                            </a>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="logout-success">
+                        <p class="login-subtitle">You have successfully signed out of your account.</p>
+                        <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-login">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In Again
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="login-footer">
+            <p>&copy; @DateTime.Now.Year KUTIP. All rights reserved.</p>
+        </div>
+    </div>
+</div>

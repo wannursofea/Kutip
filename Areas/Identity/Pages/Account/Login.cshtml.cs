@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -81,8 +81,6 @@ namespace Kutip.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
@@ -93,24 +91,19 @@ namespace Kutip.Areas.Identity.Pages.Account
                     {
                         if (await _userManager.IsInRoleAsync(user, Roles.Operator.ToString()))
                         {
-                            return LocalRedirect(Url.Action("Index", "Operator")); // Redirect to Operator's dashboard
+                            return LocalRedirect(Url.Action("Index", "Operator")); 
                         }
                         else if (await _userManager.IsInRoleAsync(user, Roles.Driver.ToString()))
                         {
-                            return LocalRedirect(Url.Action("Index", "Driver")); // Redirect to Driver's dashboard
-                        }
-                        else if (await _userManager.IsInRoleAsync(user, Roles.Collector.ToString()))
-                        {
-                            return LocalRedirect(Url.Action("Index", "Collector")); // Redirect to Collector's dashboard
+                            return LocalRedirect(Url.Action("Index", "Driver")); 
                         }
                     }
 
-                    // Fallback if user has no specific role or original returnUrl is generic
                     if (string.IsNullOrEmpty(returnUrl) || returnUrl == "/" || returnUrl == "/login")
                     {
-                        return LocalRedirect(Url.Action("Index", "Home")); // Default authenticated page
+                        return LocalRedirect(Url.Action("Index", "Home")); 
                     }
-                    return LocalRedirect(returnUrl); // Respect original returnUrl if it existed
+                    return LocalRedirect(returnUrl); 
                 }
                 if (result.RequiresTwoFactor)
                 {
@@ -128,7 +121,6 @@ namespace Kutip.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
         }
     }

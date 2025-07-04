@@ -1,0 +1,324 @@
+@model Kutip.ViewModels.UserViewModel
+
+@{
+    ViewData["Title"] = "User Details";
+    Layout = ViewBag.IsModal == true ? null : "~/Views/Shared/_Layout.cshtml"; // Set layout to null if it's a modal request
+    var userRole = ViewBag.UserRole as string;
+    var assignedTrucks = ViewBag.AssignedTrucks as List<Kutip.Models.Truck>;
+    var recentGroupedSchedules = ViewBag.RecentGroupedSchedules as List<Kutip.ViewModels.GroupedScheduleSummaryViewModel>;
+    var filterStartDate = ViewBag.FilterStartDate as DateTime?;
+    var filterEndDate = ViewBag.FilterEndDate as DateTime?;
+    var isModal = ViewBag.IsModal ?? false; // Get the isModal flag
+}
+
+@if (!isModal)
+{
+    <style>
+        /* Overall page background - only for full page */
+        .body-bg {
+            background-color: #e8f8f5; /* Light pastel green/blue */
+            min-height: 100vh; /* Ensure it covers the whole viewport height */
+            padding-top: 1rem; /* Add some top padding */
+            padding-bottom: 1rem; /* Add some bottom padding */
+        }
+
+        /* Adjust container-fluid padding - only for full page */
+        .container-fluid-custom {
+            padding-right: 1rem; /* Reduced from default 1.5rem */
+            padding-left: 1rem;  /* Reduced from default 1.5rem */
+        }
+    </style>
+}
+
+<style>
+    /* Styles for consistency, apply to both full page and modal content */
+    .page-header {
+        /* Inherits details-container styles for card look */
+        margin-bottom: 24px; /* Keep margin for separation from first card */
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #5a5c69;
+    }
+
+    .page-subtitle {
+        color: #858796;
+        margin-bottom: 0;
+    }
+
+    .details-container {
+        background-color: #fff;
+        border-radius: 0.35rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        padding: 1.25rem;
+        /* Removed margin-bottom here, will apply to individual cards */
+    }
+
+    /* New styles for detail item rows */
+    .detail-item-row {
+        display: flex;
+        justify-content: space-between; /* Pushes label to left, value to right */
+        align-items: center; /* Vertically centers them */
+        margin-bottom: 0.75rem; /* Spacing between rows */
+        padding-bottom: 0.75rem; /* For the line */
+        border-bottom: 1px solid #e3e6f0; /* The line under each detail */
+    }
+    .detail-item-row.last-detail-item-row { /* No border for the last item in a section */
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .detail-label {
+        font-weight: 700;
+        color: #5a5c69;
+        flex-shrink: 0; /* Prevent label from shrinking */
+        margin-right: 1rem; /* Space between label and value */
+    }
+    .detail-value {
+        color: #858796;
+        font-size: 1.1rem;
+        text-align: right; /* Align value to the right within its space */
+        flex-grow: 1; /* Allow value to take up remaining space */
+    }
+
+    /* Table Styles for Recent Schedules */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .data-table th, .data-table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+        border-top: 1px solid #e3e6f0;
+    }
+    .data-table th {
+        background-color: #f8f9fc;
+        color: #858796;
+        font-weight: 700;
+        text-align: left;
+        border-bottom: 2px solid #e3e6f0;
+    }
+    .data-table tbody tr:hover {
+        background-color: #f2f3f7;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 20px;
+        color: #858796;
+    }
+    .status-badge {
+        padding: 0.3em 0.6em;
+        border-radius: 0.25rem;
+        font-size: 0.85em;
+        font-weight: 600;
+        color: #fff;
+    }
+    .status-badge.completed { background-color: #1cc88a; } /* Green */
+    .status-badge.in-progress { background-color: #36b9cc; } /* Cyan */
+    .status-badge.scheduled-today { background-color: #f6c23e; } /* Yellow */
+    .status-badge.scheduled-future { background-color: #4e73df; } /* Blue */
+    .status-badge.past-due { background-color: #e74a3b; } /* Red */
+    .status-badge.unknown { background-color: #858796; } /* Gray */
+</style>
+
+@if (!isModal)
+{
+    <div class="body-bg">
+        <div class="container-fluid container-fluid-custom py-4">
+            <div class="page-header details-container mb-4">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h1 class="page-title">
+                            <i class="fas fa-user text-primary"></i> User Details
+                        </h1>
+                        <p class="page-subtitle">Detailed information about the user</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-10 mx-auto">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="details-container">
+                                <h5 class="mb-4">User Information</h5>
+                                <hr />
+                                <div class="detail-item-row">
+                                    <span class="detail-label">@Html.DisplayNameFor(model => model.Name)</span>
+                                    <span class="detail-value">@Html.DisplayFor(model => model.Name)</span>
+                                </div>
+                                <div class="detail-item-row">
+                                    <span class="detail-label">@Html.DisplayNameFor(model => model.Email)</span>
+                                    <span class="detail-value">@Html.DisplayFor(model => model.Email)</span>
+                                </div>
+                                <div class="detail-item-row last-detail-item-row">
+                                    <span class="detail-label">@Html.DisplayNameFor(model => model.Role)</span>
+                                    <span class="detail-value">
+                                        <span class="badge bg-secondary">@Html.DisplayFor(model => model.Role)</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (userRole == nameof(Kutip.Constants.Roles.Driver))
+                        {
+                            <div class="col-md-6 mb-4">
+                                <div class="details-container">
+                                    <h5 class="mb-4">Assigned Trucks</h5>
+                                    <hr />
+                                    @if (assignedTrucks != null && assignedTrucks.Any())
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="data-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Plate Number</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var truck in assignedTrucks)
+                                                    {
+                                                        <tr>
+                                                            <td>@truck.t_PlateNo</td>
+                                                            <td>@truck.t_Status</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="empty-state">
+                                            <i class="fas fa-truck"></i>
+                                            <h5>No Assigned Trucks Found</h5>
+                                            <p>This driver has no trucks associated with their schedules.</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (userRole == nameof(Kutip.Constants.Roles.Driver))
+                    {
+                        <div class="details-container mb-4">
+                            <h5 class="mb-4">Recent Schedules (@userRole)</h5>
+                            <hr />
+                            <form asp-action="DetailsUser" asp-route-id="@Model.Id" method="get" class="mb-4">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-4">
+                                        <label for="startDate" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="startDate" name="startDate" value="@(filterStartDate?.ToString("yyyy-MM-dd"))" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="endDate" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="endDate" name="endDate" value="@(filterEndDate?.ToString("yyyy-MM-dd"))" />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-filter"></i> Filter Schedules
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            @if (recentGroupedSchedules != null && recentGroupedSchedules.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Time</th>
+                                                <th>Location</th>
+                                                <th>Truck</th>
+                                                <th>Bins (C/S)</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var scheduleSummary in recentGroupedSchedules)
+                                            {
+                                                <tr>
+                                                    <td>@scheduleSummary.ScheduleDate.ToShortDateString()</td>
+                                                    <td>@scheduleSummary.PickupTime.ToString(@"hh\:mm") - @scheduleSummary.PickupEnd.ToString(@"hh\:mm")</td>
+                                                    <td>@scheduleSummary.LocationAddress2</td>
+                                                    <td>@scheduleSummary.TruckPlateNo</td>
+                                                    <td>@scheduleSummary.TotalBinsCollected / @scheduleSummary.TotalBinsScheduled</td>
+                                                    <td>
+                                                        @{
+                                                            string statusClass = scheduleSummary.Status.ToLower().Replace(" ", "-").Replace("(", "").Replace(")", "");
+                                                        }
+                                                        <span class="status-badge @statusClass">@scheduleSummary.Status</span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="empty-state">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <h5>No Recent Schedules Found</h5>
+                                    <p>This driver has no recent schedules to display for the selected period.</p>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-start mt-4">
+                        <a asp-action="UserList" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    @* This is the content rendered when isModal is true *@
+    <div class="page-header details-container mb-4"> @* Apply details-container style to header *@
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="page-title">
+                    <i class="fas fa-user text-primary"></i> User Details
+                </h1>
+                <p class="page-subtitle">Detailed information about the user</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="details-container">
+        <h5 class="mb-4">User Information</h5>
+        <hr />
+        <div class="detail-item-row">
+            <span class="detail-label">@Html.DisplayNameFor(model => model.Name)</span>
+            <span class="detail-value">@Html.DisplayFor(model => model.Name)</span>
+        </div>
+        <div class="detail-item-row">
+            <span class="detail-label">@Html.DisplayNameFor(model => model.Email)</span>
+            <span class="detail-value">@Html.DisplayFor(model => model.Email)</span>
+        </div>
+        <div class="detail-item-row last-detail-item-row">
+            <span class="detail-label">@Html.DisplayNameFor(model => model.Role)</span>
+            <span class="detail-value">
+                <span class="badge bg-secondary">@Html.DisplayFor(model => model.Role)</span>
+            </span>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-start mt-4">
+        <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </button>
+    </div>
+}
